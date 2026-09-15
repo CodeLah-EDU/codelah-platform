@@ -208,4 +208,13 @@ Keep confirmed decisions distinct from recommendations. Update this file as the 
 - Browser handoff was unavailable because no browser is connected. Desktop/mobile screenshots, keyboard interaction, and end-to-end click testing have not run; leave those acceptance items open.
 - Added an optional feature-detected WebMCP role-preview tool. No supported WebMCP browser context is available, so its runtime contract has not been verified. It is not required for ordinary dashboard use.
 - Environment: verified Node.js 22.21.0; starter requires 22.13+. The installer reported 11 dependency advisories; a dependency audit and any necessary upgrades remain a pre-pilot task.
-- Status: preparing a private review deployment; founder review is still required before Phase 2.
+- Status: private review deployment succeeded; founder review is still required before Phase 2.
+
+### 2026-09-15 — review handoff
+
+- Private preview: https://codelah-classroom-prototype.karthikadharsh2106.chatgpt.site
+- Deployed application source: `00fea0980521f30145f6ccd05d308f715aa9007c` (Sites version 1). This subsequent documentation entry does not change the deployed application.
+- Pushed the prototype to `CodeLah-EDU/codelah-platform`, branch `dev`; local `dev` tracks `origin/dev`.
+- Confirmed deployment status `succeeded` and the completed local route returned HTTP 200. The local development server was stopped after publishing.
+- Review walkthrough: select **Teacher**, edit Avery's attendance and feedback, choose **Publish demo update**, then select **Parent** to see Avery's report. Open the worksheet and classroom layout from **Student**. Refresh to reset the fictional data.
+- Remaining before phase acceptance: browser/mobile and keyboard checks, optional WebMCP runtime validation, and founder feedback. Full starter-catalog lint and dependency advisories remain documented technical follow-ups; CodeLah application lint, TypeScript, build, and four automated state tests pass.
