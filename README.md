@@ -31,8 +31,8 @@ APP_ORIGIN=http://localhost:3001
 1. Open the login page and expand **First time here? Create an adult account**.
 2. Register the reserved administrator email and verify the email from Supabase. Choose your own password; do not share it in chat or source control.
 3. The private, one-use administrator reservation activates that verified account automatically.
-4. Other adults start pending. An administrator assigns their parent/teacher role, name, and status.
-5. The administrator creates student usernames/passwords, then adds parent links, teacher assignments, and enrolments. An authorised parent/teacher may reset their student's password.
+4. Administrators use `/admin` with a separate sidebar; `/admin/login` is the dedicated sign-in. Other adults start pending; assign their roles under **Parents & teachers**.
+5. Use **Students → Create student** for usernames/passwords. Use **Classes → Create class → Manage class** for enrolments and teacher assignments, and **Parent links** for families. An authorised parent/teacher may reset their student's password.
 
 The selected project has its first-admin reservation configured. A fresh project needs a deliberate privileged reservation after applying migrations; the repository does not grant admin based on user-editable metadata. Supabase email delivery/SMTP must work for adult signup and recovery.
 

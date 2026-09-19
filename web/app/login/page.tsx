@@ -24,6 +24,9 @@ export default async function Login({
       <Link className="wordmark" href="/">
         CodeLah<span>_</span>
       </Link>
+      <Link className="admin-entry-link" href="/admin/login">
+        Administrator sign in →
+      </Link>
       <div className="auth-intro">
         <p className="eyebrow">YOUR LEARNING STUDIO</p>
         <h1>Welcome back.</h1>
@@ -102,7 +105,7 @@ export default async function Login({
               Parent / teacher sign in
             </button>
           </form>
-          <details>
+          <details id="recovery">
             <summary>Forgot your password?</summary>
             <form action="/auth/recover" method="post" className="account-form">
               <label>

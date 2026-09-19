@@ -56,3 +56,28 @@ test('password and multipart input validation reject unsafe shapes', () => {
   form.set('password', new Blob(['abc']), 'pw.txt');
   assert.equal(formText(form, 'password'), '');
 });
+
+test('admin form returns accept only known pages and canonical class paths', async () => {
+  const { managementReturnPath } = await import('../lib/accounts.ts');
+  for (const path of [
+    '/admin/students',
+    '/admin/students/new',
+    '/admin/classes',
+    '/admin/classes/new',
+    '/admin/adults',
+    '/admin/relationships',
+    '/admin/classes/00000000-0000-0000-0000-000000000001',
+  ]) {
+    assert.equal(managementReturnPath(path), path);
+  }
+  for (const path of [
+    'https://evil.example',
+    '//evil.example',
+    '/admin/../auth/logout',
+    '/admin/classes/not-an-id',
+    '/admin?next=https://evil.example',
+    '/admin/classes/%2e%2e',
+  ]) {
+    assert.equal(managementReturnPath(path), '/dashboard');
+  }
+});

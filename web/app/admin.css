@@ -1,0 +1,482 @@
+/* A distinct operational workspace, using the existing CodeLah brand tokens. */
+.admin-shell {
+  display: grid;
+  grid-template-columns: 244px minmax(0, 1fr);
+  min-height: 100svh;
+}
+.admin-sidebar {
+  background: var(--ink);
+  color: var(--paper);
+  padding: 34px 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow-y: auto;
+}
+.admin-sidebar .wordmark,
+.admin-login-brand .wordmark {
+  color: var(--paper);
+  text-decoration: none;
+}
+.admin-sidebar .wordmark span,
+.admin-login-brand .wordmark span {
+  color: var(--lime);
+}
+.admin-sidebar-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  color: #bac7b5;
+  margin-bottom: -18px;
+}
+.admin-nav {
+  display: grid;
+  gap: 8px;
+}
+.admin-nav a {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 48px;
+  padding: 12px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: #e0e8da;
+}
+.admin-nav a > span {
+  font:
+    0.75rem 'IBM Plex Mono',
+    monospace;
+  opacity: 0.65;
+}
+.admin-nav a:hover {
+  background: #314238;
+}
+.admin-nav a[aria-current='page'] {
+  color: var(--ink);
+  background: var(--lime);
+  font-weight: 650;
+}
+.admin-sidebar-footer {
+  margin-top: auto;
+  border-top: 1px solid #526050;
+  padding-top: 22px;
+  display: grid;
+  gap: 16px;
+  font-size: 0.875rem;
+}
+.admin-sidebar-footer > span {
+  color: #bac7b5;
+  overflow-wrap: anywhere;
+}
+.admin-sidebar-footer a {
+  text-decoration: none;
+}
+.admin-sidebar-footer button {
+  background: transparent;
+  border: 1px solid #687562;
+  color: var(--paper);
+  padding: 10px 20px;
+  border-radius: 8px;
+  min-height: 44px;
+}
+.admin-sidebar :focus-visible,
+.admin-login-brand :focus-visible {
+  outline-color: var(--lime);
+}
+.account-shell.admin-main {
+  width: 100%;
+  max-width: 1420px;
+  padding: 46px clamp(24px, 4vw, 64px) 64px;
+}
+.admin-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+.admin-heading h1 {
+  font-size: clamp(1.9rem, 3vw, 2.5rem);
+  margin: 8px 0 12px;
+  overflow-wrap: anywhere;
+}
+.admin-heading .button {
+  flex-shrink: 0;
+}
+.admin-main .button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+.admin-main .panel {
+  border-radius: 14px;
+  margin-bottom: 24px;
+  padding: 26px;
+}
+.admin-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin-bottom: 28px;
+}
+.admin-metrics a {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 24px;
+  text-decoration: none;
+}
+.admin-metrics span {
+  font-size: 0.9rem;
+  color: var(--muted-foreground);
+}
+.admin-metrics strong {
+  font-size: 2.6rem;
+  line-height: 1;
+  font-weight: 600;
+}
+.admin-metrics small {
+  font-size: 0.85rem;
+  color: var(--muted-foreground);
+}
+.admin-section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.admin-section-heading h2,
+.admin-main .panel > h2 {
+  font-size: 1.15rem;
+  letter-spacing: -0.02em;
+}
+.admin-actions {
+  display: grid;
+}
+.admin-actions > a {
+  display: flex;
+  gap: 22px;
+  align-items: center;
+  padding: 22px 0;
+  border-top: 1px solid var(--line);
+  text-decoration: none;
+}
+.admin-actions > a > div {
+  flex: 1;
+}
+.admin-actions h3 {
+  font-size: 1.05rem;
+  margin-bottom: 6px;
+}
+.admin-actions p {
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+}
+.admin-step {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--muted);
+  font:
+    0.8rem 'IBM Plex Mono',
+    monospace;
+  flex-shrink: 0;
+}
+.admin-actions a:hover h3 {
+  text-decoration: underline;
+}
+.admin-directory {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.admin-directory > li {
+  padding: 22px 0;
+  border-top: 1px solid var(--line);
+}
+.admin-directory > li:first-child {
+  border-top: 0;
+}
+.admin-directory .account-form {
+  max-width: 500px;
+}
+.admin-record {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.admin-record > div:not(.admin-avatar) {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.admin-record > strong {
+  flex: 1;
+}
+.admin-record h3 {
+  font-size: 1.05rem;
+  margin-bottom: 6px;
+}
+.admin-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: var(--muted);
+  font-weight: 650;
+}
+.admin-status {
+  border: 1px solid var(--line);
+  background: var(--muted);
+  color: var(--muted-foreground);
+  border-radius: 100px;
+  padding: 5px 10px;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+.admin-status.is-active {
+  background: #e8f6d1;
+  border-color: #bdceab;
+  color: #355621;
+}
+.admin-record-context {
+  margin: 14px 0;
+  font-size: 0.9rem;
+}
+.admin-record-actions {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.admin-main .admin-record-actions details {
+  margin: 0;
+  flex: 1;
+  min-width: 180px;
+}
+.admin-record-actions > a {
+  padding: 10px 0;
+  font-size: 0.9rem;
+}
+.admin-main details summary {
+  font-size: 0.9rem;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.admin-back {
+  display: inline-block;
+  margin-bottom: 26px;
+  font-size: 0.9rem;
+}
+.admin-form-panel {
+  max-width: 680px;
+}
+.admin-form-actions {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-top: 8px;
+}
+.admin-empty {
+  padding: 28px 0;
+  color: var(--muted-foreground);
+  line-height: 1.6;
+}
+.admin-class-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  align-items: start;
+}
+.admin-class-grid .panel {
+  min-width: 0;
+}
+.admin-class-grid h2 {
+  overflow-wrap: anywhere;
+}
+.admin-class-grid > .panel > .button {
+  margin-top: 24px;
+}
+.admin-capacity {
+  font-size: 2rem;
+  margin: 26px 0 8px;
+  font-weight: 600;
+}
+.admin-capacity > span {
+  font-size: 0.9rem;
+  color: var(--muted-foreground);
+  font-weight: 400;
+}
+.admin-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+.admin-text-button {
+  background: transparent;
+  border: 0;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  min-height: 44px;
+  font-size: 0.875rem;
+  color: var(--ink);
+  padding: 8px 0;
+}
+.admin-login {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 100svh;
+}
+.admin-login-brand {
+  background: var(--ink);
+  color: var(--paper);
+  padding: 48px clamp(28px, 5vw, 80px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 64px;
+}
+.admin-login-brand h1 {
+  font-size: clamp(2rem, 3.5vw, 3.3rem);
+  line-height: 1.12;
+  margin: 20px 0;
+}
+.admin-login-brand .eyebrow {
+  color: var(--lime);
+}
+.admin-login-brand p:not(.eyebrow),
+.admin-login-brand .account-meta {
+  color: #bccab5;
+}
+.admin-login-form.account-shell {
+  width: 100%;
+  max-width: 530px;
+  align-self: center;
+  padding: 64px 40px;
+}
+.admin-login-form h2 {
+  font-size: 2rem;
+  margin: 12px 0;
+}
+.admin-login-form .account-form {
+  margin: 32px 0 24px;
+}
+.admin-login-divider {
+  height: 1px;
+  background: var(--line);
+  margin: 32px 0;
+}
+.admin-entry-link {
+  float: right;
+  padding: 10px 0;
+  font-size: 0.9rem;
+}
+@media (max-width: 1100px) {
+  .admin-shell {
+    grid-template-columns: 214px minmax(0, 1fr);
+  }
+  .admin-metrics {
+    gap: 12px;
+  }
+  .admin-metrics a {
+    padding: 18px;
+  }
+  .admin-class-grid,
+  .admin-split {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 760px) {
+  .admin-shell {
+    display: block;
+  }
+  .admin-sidebar {
+    position: static;
+    height: auto;
+    padding: 20px;
+    gap: 18px;
+  }
+  .admin-sidebar-label {
+    display: none;
+  }
+  .admin-nav {
+    display: flex;
+    overflow-x: auto;
+    gap: 8px;
+    padding: 4px;
+    margin: 0 -4px;
+  }
+  .admin-nav a {
+    flex-shrink: 0;
+  }
+  .admin-nav a > span {
+    display: none;
+  }
+  .admin-sidebar-footer {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 18px;
+    padding-top: 14px;
+  }
+  .admin-sidebar-footer > span {
+    display: none;
+  }
+  .account-shell.admin-main {
+    padding: 28px 20px 48px;
+  }
+  .admin-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .admin-metrics {
+    grid-template-columns: 1fr;
+  }
+  .admin-metrics a {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+  }
+  .admin-metrics strong {
+    grid-row: span 2;
+  }
+  .admin-metrics small {
+    grid-column: 1;
+  }
+  .admin-login {
+    grid-template-columns: 1fr;
+  }
+  .admin-login-brand {
+    padding: 26px;
+    gap: 26px;
+  }
+  .admin-login-brand > div,
+  .admin-login-brand > .account-meta {
+    display: none;
+  }
+  .admin-login-form.account-shell {
+    padding: 36px 24px;
+  }
+  .admin-entry-link {
+    float: none;
+    display: block;
+    margin-top: 8px;
+  }
+}

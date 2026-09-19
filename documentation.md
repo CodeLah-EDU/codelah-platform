@@ -368,3 +368,26 @@ Roles must not come from a role selector or editable signup metadata. New identi
 - The student dashboard displays the student's own account, the student role, and no administrator controls. The empty class list is expected before enrolment.
 - This verifies the successful student-creation and login path through the deployed account function and local app. It does not by itself verify cross-student database isolation, password resets, or parent/teacher access; those retain their separate acceptance checks.
 - Next live check: create a test class in the administrator window, enrol this student, and refresh the student's window to confirm the class appears.
+
+### 2026-09-19 — separate administrator workspace
+
+- Founder requested a different administrator UI and separate pages after finding the combined student/class forms confusing. This is a Phase 2 usability revision, not a move into Phase 3.
+- Added a dedicated administrator sign-in at `/admin/login`, linked clearly from the family/student sign-in page. It uses the same verified Supabase account; selecting the admin form never grants an admin role.
+- Active administrators entering `/dashboard` now redirect to `/admin`. Other roles retain their existing dashboard. Every protected admin page checks the current active administrator account server-side, in addition to existing RLS and mutation authorization.
+- Added a dark-green sidebar and compact operational layout using the documented DM Sans, IBM Plex Mono, off-white, and lime palette.
+
+| Administrator page | Purpose |
+| --- | --- |
+| Overview | Real account/class counts and shortcuts to common setup tasks. |
+| Students | Student directory, account name/status edits, and password resets. |
+| Create student | A dedicated form for name, username, and initial password. |
+| Parents & teachers | Adult accounts and role/status assignment. |
+| Classes | Class list and occupancy, with a separate Create class page. |
+| Class detail | That class's roster, enrolment changes, teacher assignments, and four-student capacity. |
+| Parent links | Connect parents to students, revoke access, or restore a link. |
+
+- Form submissions return to the relevant management page. Return locations use a strict allowlist and canonical class-ID path validation, not arbitrary redirect URLs.
+- Existing data and the database schema are unchanged. Student creation and password actions still use the deployed authenticated Edge Function.
+- Verification: build, TypeScript, and application/admin-component lint pass; 19 automated tests pass, including redirect-target validation and existing PostgreSQL permission tests. The new admin sign-in returns HTTP 200; signed-out requests to the workspace, student-creation page, and class-creation page redirect to `/admin/login`.
+- Authenticated visual/interaction review of the revised pages is still pending with the founder. No browser screenshot or click testing was run for this revision. The existing server remains available at `http://localhost:3001`; the hosted Phase 1 review site is not updated by this local change.
+- Updated enrolment walkthrough: administrator → **Classes** → **Create class**, then **Manage class** → choose the student → **Enrol student**. Refresh the student's separate window to check the assigned class appears.

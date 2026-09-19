@@ -37,3 +37,22 @@ export function formText(form: FormData, key: string): string {
   const value = form.get(key);
   return typeof value === 'string' ? value : '';
 }
+
+// Form return locations are navigation only; every endpoint still authorizes the actor.
+export function managementReturnPath(value: string): string {
+  const allowed = [
+    '/admin',
+    '/admin/students',
+    '/admin/students/new',
+    '/admin/adults',
+    '/admin/classes',
+    '/admin/classes/new',
+    '/admin/relationships',
+  ];
+  return allowed.includes(value) ||
+    /^\/admin\/classes\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+      value,
+    )
+    ? value
+    : '/dashboard';
+}

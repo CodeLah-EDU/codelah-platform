@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import '@fontsource-variable/dm-sans';
 import '@fontsource/ibm-plex-mono/400.css';
 import './globals.css';
+import './admin.css';
 
 export const metadata: Metadata = {
   title: 'CodeLah · Learning studio',

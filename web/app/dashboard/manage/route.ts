@@ -1,11 +1,12 @@
-import { formText } from '@/lib/accounts';
+import { formText, managementReturnPath } from '@/lib/accounts';
 import { supabaseServer } from '@/lib/supabase/server';
 import { safeOrigin } from '@/lib/accounts';
 export async function POST(request: Request) {
   const origin = safeOrigin(request);
   if (!origin) return new Response('Invalid request origin', { status: 403 });
+  let returnPath = '/dashboard';
   const finish = (message: string) =>
-    Response.redirect(`${origin}/dashboard?message=${message}`, 303);
+    Response.redirect(`${origin}${returnPath}?message=${message}`, 303);
   try {
     const client = await supabaseServer();
     const {
@@ -20,6 +21,7 @@ export async function POST(request: Request) {
     if (actor?.role !== 'admin' || actor.status !== 'active')
       return finish('denied');
     const form = await request.formData();
+    returnPath = managementReturnPath(formText(form, 'return_to'));
     const value = (key: string) => formText(form, key).trim();
     const active = value('active') === 'true';
     let result;
@@ -76,6 +78,7 @@ export async function POST(request: Request) {
       default:
         return finish('failed');
     }
+    if (!result.error) returnPath = returnPath.replace(/\/new$/, '');
     return finish(result.error ? 'failed' : 'saved');
   } catch {
     return finish('failed');

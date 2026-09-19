@@ -1,4 +1,4 @@
-import { formText } from '@/lib/accounts';
+import { formText, managementReturnPath } from '@/lib/accounts';
 import { supabaseServer } from './server';
 import { safeOrigin, passwordError } from '@/lib/accounts';
 export async function studentAction(
@@ -7,8 +7,9 @@ export async function studentAction(
 ) {
   const origin = safeOrigin(request);
   if (!origin) return new Response('Invalid request origin', { status: 403 });
+  let returnPath = '/dashboard';
   const finish = (message: string) =>
-    Response.redirect(`${origin}/dashboard?message=${message}`, 303);
+    Response.redirect(`${origin}${returnPath}?message=${message}`, 303);
   try {
     const client = await supabaseServer();
     const {
@@ -16,6 +17,7 @@ export async function studentAction(
     } = await client.auth.getUser();
     if (!user) return finish('denied');
     const form = await request.formData();
+    returnPath = managementReturnPath(formText(form, 'return_to'));
     const password = formText(form, 'password');
     if (passwordError(password)) return finish('failed');
     const body =
@@ -34,6 +36,7 @@ export async function studentAction(
     const { error } = await client.functions.invoke('student-accounts', {
       body,
     });
+    if (!error) returnPath = returnPath.replace(/\/new$/, '');
     return finish(
       error ? 'failed' : action === 'create_student' ? 'created' : 'password',
     );

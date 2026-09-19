@@ -13,7 +13,7 @@
     "format": "oxfmt",
     "typecheck": "tsc --noEmit",
     "test": "node --experimental-strip-types --test tests/*.test.mjs",
-    "lint:app": "oxlint app lib tests e2e proxy.ts playwright.config.ts",
+    "lint:app": "oxlint app lib components/admin tests e2e proxy.ts playwright.config.ts",
     "test:e2e": "playwright test"
   },
   "dependencies": {
