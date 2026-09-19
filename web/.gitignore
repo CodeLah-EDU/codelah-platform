@@ -39,3 +39,7 @@ next-env.d.ts
 
 # TypeScript build cache
 *.tsbuildinfo
+
+# Browser test artifacts
+/test-results/
+/playwright-report/

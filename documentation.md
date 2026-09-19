@@ -1,6 +1,6 @@
 # CodeLah platform — project documentation
 
-Last updated: 2026-09-15
+Last updated: 2026-09-19
 
 ## 1. Purpose
 
@@ -19,6 +19,10 @@ The core teaching cycle is: scheduled lesson → live class → worksheet and st
 | D005 | Start with the student, teacher, and parent dashboard prototype. | 2026-09-15 |
 | D006 | Follow the font and design guidelines in `CodeLah-EDU/codelah`. | 2026-09-15 |
 | D007 | Classes have four students, with sessions lasting 90–120 minutes. | 2026-09-15 |
+| D008 | Proceed with Phase 2: real accounts, relationships, and access controls. | 2026-09-16 |
+| D009 | Use the founder-provided Supabase project `tcequgfvwzfbxawclyum` for Phase 2; inspect existing data and environment before changes. | 2026-09-16 |
+| D010 | Students sign in with a username and password; their linked parent or assigned teacher manages account setup and recovery. | 2026-09-16 |
+| D011 | Reserve `hello@codelah.sg` as the first administrator; activate after verified email through a one-use reservation. | 2026-09-16 |
 
 The platform source is developed on `dev`, with `origin` pointing to the CodeLah-EDU GitHub repository. A private Sites review deployment uses a separate source snapshot; its hosting branch does not change the development branch. GitHub publication is tracked separately from the preview deployment.
 
@@ -52,8 +56,8 @@ The reference site describes ages 10–17. The platform's exact age eligibility 
 
 | Phase | Outcome | Status |
 | --- | --- | --- |
-| 1 — Dashboard prototype | Review the student, teacher, and parent experience with fictional sample lessons. | Implemented; browser verification and founder review pending |
-| 2 — Accounts and access | Real authentication, parent–child links, teacher assignments, and enforced permissions. | Proposed |
+| 1 — Dashboard prototype | Review the student, teacher, and parent experience with fictional sample lessons. | Founder approved moving to Phase 2; browser verification remains outstanding |
+| 2 — Accounts and access | Real authentication, parent–child links, teacher assignments, and enforced permissions. | Implemented locally; administrator activation and authenticated acceptance checks pending |
 | 3 — Teaching workflow | Persistent schedules, worksheets, submissions, attendance, and teacher feedback. | Proposed |
 | 4 — Live classroom | Embedded video and screen sharing linked to scheduled lessons. | Proposed; provider undecided |
 | 5 — Payments and pilot | SGD billing, receipts, and a small operational pilot. | Proposed |
@@ -101,7 +105,7 @@ Proposed review interaction: edit attendance and a weekly note in the teacher vi
 - [ ] Demo status and refresh/reset behaviour are clear.
 - [ ] Desktop and mobile layouts, keyboard use, and relevant empty/error states are checked.
 - [x] Production build, TypeScript, application lint, and four state-transition tests pass. Browser interaction checks remain pending.
-- [ ] Founder reviews the prototype and agrees on the next phase.
+- [x] Founder agreed to proceed to Phase 2 on 2026-09-16; this does not substitute for the outstanding browser checks.
 
 ## 6. Live classroom — proposed approach
 
@@ -218,3 +222,135 @@ Keep confirmed decisions distinct from recommendations. Update this file as the 
 - Confirmed deployment status `succeeded` and the completed local route returned HTTP 200. The local development server was stopped after publishing.
 - Review walkthrough: select **Teacher**, edit Avery's attendance and feedback, choose **Publish demo update**, then select **Parent** to see Avery's report. Open the worksheet and classroom layout from **Student**. Refresh to reset the fictional data.
 - Remaining before phase acceptance: browser/mobile and keyboard checks, optional WebMCP runtime validation, and founder feedback. Full starter-catalog lint and dependency advisories remain documented technical follow-ups; CodeLah application lint, TypeScript, build, and four automated state tests pass.
+
+## 9. Phase 2 — accounts and access
+
+Approved 2026-09-16. This phase replaces demo identity switching with authenticated access to persistent accounts and relationships. The Phase 1 demo remains available for review while the real account system is prepared.
+
+### Scope
+
+- Managed authentication with sign-in, sign-out, session handling, and account recovery.
+- Persistent account profiles for students, parents, teachers, and a minimal administrator role for provisioning.
+- Administrator-controlled parent–student links, teacher assignments, and class enrolments.
+- Server-side access checks and database row-level security.
+- Authenticated dashboard entry with only the authorised user's records.
+- Explicit pending/unassigned, suspended, signed-out, and failed-connection states.
+
+Scheduling workflows, persistent teacher lesson reports, worksheet submissions, video calls, and billing remain in their later phases. Do not imply that sample lesson data becomes real merely because accounts are connected.
+
+### Intended access rules
+
+| Role | Allowed information | Relationship changes |
+| --- | --- | --- |
+| Student | Own profile and enrolled classes | None |
+| Parent | Own profile, explicitly linked children, and their classes | None |
+| Teacher | Own profile and assigned classes/students | None |
+| Administrator | Accounts and teaching relationships needed for setup | Create and revoke approved links/assignments |
+| Pending or suspended account | Own account status only | None |
+| Signed out | Sign-in/recovery pages only | None |
+
+Roles must not come from a role selector or editable signup metadata. New identities receive no teaching access until provisioned. Each API and database query must enforce the same access boundaries, including direct requests for another student's ID. Credentials remain with the authentication service; the application stores no plaintext passwords.
+
+### Connection and environment
+
+- Selected Supabase project reference: `tcequgfvwzfbxawclyum`.
+- MCP endpoint supplied by the founder: `https://mcp.supabase.com/mcp?project_ref=tcequgfvwzfbxawclyum&features=docs%2Caccount%2Cdatabase%2Cdebugging%2Cdevelopment%2Cfunctions%2Cbranching`.
+- Local Codex MCP name: `codelah-supabase`. Registered and OAuth sign-in succeeded on 2026-09-16. The conversation does not expose it directly, but the supported Codex app-server MCP tool-call interface connects successfully using the existing OAuth login. No model/agent turn is started by that diagnostic client.
+- Inspect schemas and project status before applying migrations. Initial inspection found no public tables, migrations, or Auth users. Account migrations have now been applied to this project.
+- The current private Sites preview uses ChatGPT access. Confirm the supported external login/hosting path before exposing CodeLah accounts; students must not depend on ChatGPT accounts.
+- Student sign-in is confirmed: username and password, managed by the linked parent or assigned teacher. Students do not need a personal email address for the CodeLah sign-in screen.
+
+### Acceptance checklist
+
+- [x] Supabase MCP authenticated and project contents inspected.
+- [ ] External account login and hosting path confirmed.
+- [x] Versioned account/relationship schema and migrations prepared and applied to the selected project after checking it was empty.
+- [ ] Real sign-in, sign-out, session expiry/refresh, and recovery checked.
+- [ ] Parent can read a linked child and cannot read another child, including direct API/database access.
+- [ ] Teacher can read assigned classes and cannot read an unassigned class.
+- [ ] Student cannot read other students or modify relationships.
+- [ ] Unassigned/suspended users and anonymous requests cannot access protected records.
+- [ ] Client-supplied role changes cannot grant privileges.
+- [ ] Revoking a link or assignment removes access.
+- [ ] Authentication, migration, build, and relevant browser checks recorded.
+- [ ] Founder reviews Phase 2 before Phase 3 starts.
+
+### 2026-09-16 — Phase 2 connection setup
+
+- Founder approved Phase 2 and provided the project-scoped Supabase MCP endpoint.
+- Confirmed no Supabase tools were available in this session and no Supabase CLI account was authenticated.
+- Registered `codelah-supabase` using the supplied endpoint. Automatic OAuth scope discovery failed; retried with supported database/project/environment scopes and obtained the interactive authorisation link.
+- No Supabase project data has been read or modified, and no schema migration has been applied.
+- The earlier local PostgreSQL test-engine installation was interrupted before a confirmed result; no Phase 2 dependency or source change was present on inspection.
+- OAuth completed successfully for `codelah-supabase`; `codex mcp get` confirms the supplied project URL is enabled. The active conversation still returns `unknown MCP server` for this new connection and exposes no Supabase tools.
+- Historical next step was to reload the connection. This was superseded by the working direct MCP client and implementation recorded below.
+
+### Student account flow — confirmed direction
+
+- A student signs in with a unique username and password.
+- A linked parent or assigned teacher can initiate setup or a password reset for that student only. They cannot view the current password.
+- Student account management does not grant permission to assign roles, claim another child, or change enrolments. Those relationships stay under administrator control.
+- Supabase remains responsible for password verification and storage. Any mapping from username to the managed authentication identity stays server-side and must not expose adult email addresses.
+- Invalid usernames and incorrect passwords receive the same sign-in response; apply rate limits before enabling the live flow.
+- Account recovery and management endpoints must verify the adult's identity and active parent/teacher relationship on each request. Revoking the relationship must remove those powers.
+- Implementation detail to verify against the selected Supabase project: how the username maps to its managed identity and how first-time password setup and recovery are delivered. No custom password store will be added.
+
+### 2026-09-16 — student sign-in preference confirmed
+
+- Founder selected student username/password login managed by a parent or teacher.
+- Recorded decision D010 and the account management boundaries above.
+- Supabase OAuth remains completed; its tools are still absent from this conversation's tool catalog. No new connection or installation is required, and no database changes were made in this update.
+
+### 2026-09-16 to 2026-09-19 — Phase 2 implementation and verification
+
+**Status:** implementation is available locally on `dev`; Phase 2 is not yet accepted or complete. No Phase 3 work has started.
+
+#### Connection and database
+
+- Used the registered `codelah-supabase` connection through the documented local app-server protocol. OAuth succeeded; no repeated app restart was needed. The client only calls MCP tools; it does not start an AI agent turn.
+- Initial inspection: public schema had no tables, migrations list was empty, and Auth contained zero users.
+- Applied `accounts_and_access`, `student_accounts`, and `account_contact` migrations. Source files are in `supabase/migrations/`; Supabase assigns its own migration version timestamps.
+- Accounts default to pending regardless of signup metadata. RLS enforces own/linked/assigned records, immediate relationship revocation, and suspended-account restrictions.
+- Relationship foreign keys enforce the required parent, teacher, and student roles. A class row lock and trigger enforce at most four active students.
+- Added a one-use private reservation for the founder-selected `hello@codelah.sg`. Only a verified matching Auth identity can claim it. Other accounts cannot query or change the reservation. Confirmed through `/auth/v1/settings` that email auto-confirm is disabled.
+- Deployed `student-accounts` Edge Function version 1 with gateway JWT verification enabled. It separately validates the user through Supabase Auth and checks current account/relationship access before invoking the Auth admin API. Supabase supplies its service credential within the function; no service key was added to the frontend or local app environment.
+
+#### Application changes
+
+- `/login`: student username/password; adult email/password, registration, and password recovery.
+- `/dashboard`: persistent role-aware accounts/classes, explicit pending/suspended/error states, student password management, and a minimal administrator interface for account roles, student creation, relationships, and class enrolments.
+- `/auth/*`: sign-in, sign-out, email confirmation, password updates, and session refresh. Mutations validate the configured request origin; authenticated responses are marked private/no-store.
+- Student usernames use lowercase 4–24 character handles starting with a letter. A server-side mapping uses an internal `students.codelah.invalid` Auth identity; students do not need a personal inbox. Supabase owns credential verification/storage.
+- `/demo` retains the clearly labelled fictional Phase 1 teaching cycle. It does not show real lesson reports merely because accounts now exist.
+- Preserved DM Sans, IBM Plex Mono, and the documented colour palette. Local configuration contains only the project URL, publishable key, and application origin.
+- The local server uses **http://localhost:3001** because port 3000 belongs to the separate Minnum project. Founder confirmed adding `http://localhost:3001/auth/confirm` to Supabase Redirect URLs.
+- The existing private Sites review URL still serves the Phase 1 deployment. Phase 2 has not been deployed there. External student/parent hosting remains to be agreed and configured.
+
+#### Verification evidence
+
+- 18 automated tests pass: actual PostgreSQL migration/RLS tests via PGlite, account-input/origin tests, and the original four demo-state tests.
+- Database cases include cross-child reads, unrelated teachers, students changing roles/relationships, anonymous denial, pending/suspended accounts, revoked links, required relationship roles, four-student capacity, student-password authority, one-time verified administrator bootstrap, and shared login attempt limits.
+- Four Chromium tests pass against the local app: signed-out dashboard redirects, visible/enabled login forms, generic invalid credentials, cross-origin mutation rejection, and mobile layout/keyboard skip navigation. The origin rejection in development is also enforced by Vinext; the application origin helper has separate unit coverage.
+- Final production build, TypeScript, application lint (including account routes, proxy, and browser tests), and Git whitespace checks pass. The deployed student-account function rejects requests without a user JWT with HTTP 401.
+- Supabase's first account-schema security-advisor check was clear. After adding the login throttle, it flags the intentional exposed `SECURITY DEFINER` function `consume_sign_in_attempt` for anonymous and authenticated execution. The function only increments private attempt counters and returns a boolean; callers cannot inspect the table or grant account access. See [anonymous execution finding](https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable) and [authenticated execution finding](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable).
+- The application throttle allows ten attempts per normalized identity per ten minutes, shared across instances. It supplements Supabase Auth limits; it does not intercept callers who use the Auth API directly. CAPTCHA/abuse controls and counter cleanup/load behaviour need review before a public pilot.
+
+#### Remaining acceptance work
+
+- Founder completes registration/email verification for `hello@codelah.sg` and checks the administrator dashboard. Passwords remain private. The callback URL is confirmed saved; successful administrator activation has not yet been confirmed.
+- Verify a successful real sign-in/out, refresh/session renewal, email recovery, and first-time password setup.
+- Run the full authenticated admin → student creation → relationship assignment → parent/teacher sign-in → student reset/login → revoked-access flow. PostgreSQL policy tests are complete; live multi-account checks are still outstanding.
+- Confirm SMTP/email delivery for intended adult users. Supabase default email delivery restrictions may require a configured email service before a pilot.
+- Check desktop/mobile authenticated dashboards and the privileged Edge Function's successful and denied paths using test accounts.
+- Agree on external hosting and configure its environment/origin/redirect URLs. The app must not require a student's ChatGPT account.
+- Resolve the existing 11 dependency advisories and review the unused starter-catalog lint findings before pilot use.
+- Founder reviews Phase 2 before Phase 3 starts.
+
+#### Official implementation references
+
+- [Supabase server-side authentication](https://supabase.com/docs/guides/auth/server-side)
+- [Supabase row-level security](https://supabase.com/docs/guides/database/postgres/row-level-security)
+- [Supabase Edge Function authentication](https://supabase.com/docs/guides/functions/auth)
+- [Supabase password security](https://supabase.com/docs/guides/auth/password-security)
+
+- Connection follow-up on 2026-09-19: the final MCP inventory check failed while refreshing its OAuth token (`Failed to parse server response`). Applied migration/function results above were already confirmed. This tool-connection failure does not affect the application’s Supabase publishable-key connection; refresh the MCP authorization before the next remote schema change. Remote migration-version reconciliation with local filenames is still pending; do not run a blind CLI migration push.
