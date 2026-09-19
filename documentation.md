@@ -339,7 +339,7 @@ Roles must not come from a role selector or editable signup metadata. New identi
 
 - [x] Founder confirmed registration/email verification for `hello@codelah.sg` reached the administrator dashboard. This is founder-reported verification; no password or session credential was shared.
 - Verify a successful real sign-in/out, refresh/session renewal, email recovery, and first-time password setup.
-- Run the full authenticated admin → student creation → relationship assignment → parent/teacher sign-in → student reset/login → revoked-access flow. PostgreSQL policy tests are complete; live multi-account checks are still outstanding.
+- Administrator student creation and student login are confirmed by founder screenshots. Continue with class enrolment, parent/teacher links and sign-in, student password reset, and revoked-access checks. PostgreSQL policy tests are complete; remaining live multi-account checks are outstanding.
 - Confirm SMTP/email delivery for intended adult users. Supabase default email delivery restrictions may require a configured email service before a pilot.
 - Check desktop/mobile authenticated dashboards and the privileged Edge Function's successful and denied paths using test accounts.
 - Agree on external hosting and configure its environment/origin/redirect URLs. The app must not require a student's ChatGPT account.
@@ -361,3 +361,10 @@ Roles must not come from a role selector or editable signup metadata. New identi
 - This confirms the founder's signup/confirmation path reaches the authenticated admin view. It does not yet verify sign-out/re-entry, password recovery, session renewal, or the multi-account teaching relationships.
 - Next live check: create a clearly labelled test student with a unique username, then sign in as that student in a private browser window. Confirm that the student sees their own account and no administrator controls. Keep the administrator's original browser session open.
 - After student creation/login works, verify a test class, enrolment, linked parent, assigned teacher, password reset, and access revocation. Phase 2 remains open; Phase 3 has not started.
+
+### 2026-09-19 — student creation and sign-in confirmed
+
+- Founder screenshots show successful administrator creation of an active student, followed by username/password sign-in in a separate Incognito window.
+- The student dashboard displays the student's own account, the student role, and no administrator controls. The empty class list is expected before enrolment.
+- This verifies the successful student-creation and login path through the deployed account function and local app. It does not by itself verify cross-student database isolation, password resets, or parent/teacher access; those retain their separate acceptance checks.
+- Next live check: create a test class in the administrator window, enrol this student, and refresh the student's window to confirm the class appears.
