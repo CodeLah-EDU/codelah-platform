@@ -57,7 +57,7 @@ The reference site describes ages 10–17. The platform's exact age eligibility 
 | Phase | Outcome | Status |
 | --- | --- | --- |
 | 1 — Dashboard prototype | Review the student, teacher, and parent experience with fictional sample lessons. | Founder approved moving to Phase 2; browser verification remains outstanding |
-| 2 — Accounts and access | Real authentication, parent–child links, teacher assignments, and enforced permissions. | Implemented locally; administrator activation and authenticated acceptance checks pending |
+| 2 — Accounts and access | Real authentication, parent–child links, teacher assignments, and enforced permissions. | Implemented locally; administrator activation confirmed, remaining authenticated checks pending |
 | 3 — Teaching workflow | Persistent schedules, worksheets, submissions, attendance, and teacher feedback. | Proposed |
 | 4 — Live classroom | Embedded video and screen sharing linked to scheduled lessons. | Proposed; provider undecided |
 | 5 — Payments and pilot | SGD billing, receipts, and a small operational pilot. | Proposed |
@@ -337,7 +337,7 @@ Roles must not come from a role selector or editable signup metadata. New identi
 
 #### Remaining acceptance work
 
-- Founder completes registration/email verification for `hello@codelah.sg` and checks the administrator dashboard. Passwords remain private. The callback URL is confirmed saved; successful administrator activation has not yet been confirmed.
+- [x] Founder confirmed registration/email verification for `hello@codelah.sg` reached the administrator dashboard. This is founder-reported verification; no password or session credential was shared.
 - Verify a successful real sign-in/out, refresh/session renewal, email recovery, and first-time password setup.
 - Run the full authenticated admin → student creation → relationship assignment → parent/teacher sign-in → student reset/login → revoked-access flow. PostgreSQL policy tests are complete; live multi-account checks are still outstanding.
 - Confirm SMTP/email delivery for intended adult users. Supabase default email delivery restrictions may require a configured email service before a pilot.
@@ -354,3 +354,10 @@ Roles must not come from a role selector or editable signup metadata. New identi
 - [Supabase password security](https://supabase.com/docs/guides/auth/password-security)
 
 - Connection follow-up on 2026-09-19: the final MCP inventory check failed while refreshing its OAuth token (`Failed to parse server response`). Applied migration/function results above were already confirmed. This tool-connection failure does not affect the application’s Supabase publishable-key connection; refresh the MCP authorization before the next remote schema change. Remote migration-version reconciliation with local filenames is still pending; do not run a blind CLI migration push.
+
+### 2026-09-19 — administrator activation confirmed
+
+- Founder reports reaching the **Administrator dashboard** after registering `hello@codelah.sg` and confirming the email. This completes the initial administrator activation check.
+- This confirms the founder's signup/confirmation path reaches the authenticated admin view. It does not yet verify sign-out/re-entry, password recovery, session renewal, or the multi-account teaching relationships.
+- Next live check: create a clearly labelled test student with a unique username, then sign in as that student in a private browser window. Confirm that the student sees their own account and no administrator controls. Keep the administrator's original browser session open.
+- After student creation/login works, verify a test class, enrolment, linked parent, assigned teacher, password reset, and access revocation. Phase 2 remains open; Phase 3 has not started.

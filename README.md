@@ -4,7 +4,7 @@ CodeLah is a coding tuition platform for four-student classes in Singapore. Deve
 
 ## Current phase
 
-Phase 2 adds Supabase accounts, student username/password login, parent–student links, teacher assignments, enrolments, and access controls. The implementation is under verification; administrator activation and authenticated end-to-end checks are still required. The Phase 1 fictional dashboard remains at `/demo`.
+Phase 2 adds Supabase accounts, student username/password login, parent–student links, teacher assignments, enrolments, and access controls. The first administrator has confirmed successful activation. The implementation remains under verification; the student/parent/teacher end-to-end checks are still required. The Phase 1 fictional dashboard remains at `/demo`.
 
 ## Run locally
 
