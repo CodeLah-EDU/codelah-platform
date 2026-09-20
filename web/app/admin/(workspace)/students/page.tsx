@@ -1,3 +1,4 @@
+import { StudentParents } from '@/components/admin/student-parents';
 import Link from 'next/link';
 import { adminData } from '@/lib/admin';
 import {
@@ -13,7 +14,7 @@ export default async function Students({
 }: {
   searchParams: Promise<{ message?: string }>;
 }) {
-  const [{ people, usernames, enrolments, classes }, { message }] =
+  const [{ people, usernames, enrolments, classes, links }, { message }] =
     await Promise.all([adminData(), searchParams]);
   const students = people.filter((p) => p.role === 'student');
   return (
@@ -36,7 +37,7 @@ export default async function Students({
         ) : (
           <ul className="admin-directory">
             {students.map((s) => (
-              <li key={s.id}>
+              <li key={s.id} id={`student-${s.id}`}>
                 <div className="admin-record">
                   <div className="admin-avatar" aria-hidden="true">
                     {s.display_name.slice(0, 1).toUpperCase()}
@@ -59,6 +60,19 @@ export default async function Students({
                     .filter(Boolean)
                     .join(' · ') || 'Not enrolled in a class yet'}
                 </p>
+                <StudentParents
+                  studentId={s.id}
+                  parents={people.filter(
+                    (person) =>
+                      person.role === 'parent' &&
+                      links.some(
+                        (link) =>
+                          link.student_id === s.id &&
+                          link.parent_id === person.id &&
+                          link.active,
+                      ),
+                  )}
+                />
                 <div className="admin-record-actions">
                   <details>
                     <summary>Edit account</summary>

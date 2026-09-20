@@ -4,9 +4,11 @@ import { usePathname } from 'next/navigation';
 const links = [
   ['/admin', 'Overview', '01'],
   ['/admin/students', 'Students', '02'],
-  ['/admin/adults', 'Parents & teachers', '03'],
-  ['/admin/classes', 'Classes', '04'],
-  ['/admin/relationships', 'Parent links', '05'],
+  ['/admin/parents', 'Parents', '03'],
+  ['/admin/teachers', 'Teachers', '04'],
+  ['/admin/classes', 'Classes', '05'],
+  ['/admin/relationships', 'Parent links', '06'],
+  ['/admin/adults', 'Account requests', '07'],
 ];
 export function AdminNavigation() {
   const pathname = usePathname();

@@ -11,12 +11,7 @@ export default async function AdminOverview({
     searchParams,
   ]);
   const students = people.filter((p) => p.role === 'student');
-  const pending = people.filter(
-    (p) =>
-      p.role !== 'student' &&
-      p.role !== 'admin' &&
-      (p.role === 'pending' || p.status === 'pending'),
-  );
+  const pending = people.filter((p) => p.role === 'pending');
   return (
     <>
       <AdminHeading
@@ -36,7 +31,7 @@ export default async function AdminOverview({
           <small>Manage class rosters →</small>
         </Link>
         <Link href="/admin/adults">
-          <span>Accounts awaiting setup</span>
+          <span>Account requests</span>
           <strong>{pending.length}</strong>
           <small>Review account access →</small>
         </Link>
@@ -65,7 +60,7 @@ export default async function AdminOverview({
           <Link href="/admin/adults">
             <span className="admin-step">03</span>
             <div>
-              <h3>Set up parents and teachers</h3>
+              <h3>Review account requests</h3>
               <p>Assign access after adults verify their accounts.</p>
             </div>
             <span aria-hidden="true">↗</span>

@@ -176,8 +176,8 @@ export default async function ClassDetails({
           ) : (
             <p className="muted">
               Set up teacher access in{' '}
-              <Link href="/admin/adults">Parents & teachers</Link> before
-              assigning another teacher.
+              <Link href="/admin/teachers">Teachers</Link> before assigning
+              another teacher.
             </p>
           )}
         </section>

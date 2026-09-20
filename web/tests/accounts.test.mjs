@@ -65,6 +65,8 @@ test('admin form returns accept only known pages and canonical class paths', asy
     '/admin/classes',
     '/admin/classes/new',
     '/admin/adults',
+    '/admin/parents',
+    '/admin/teachers',
     '/admin/relationships',
     '/admin/classes/00000000-0000-0000-0000-000000000001',
   ]) {

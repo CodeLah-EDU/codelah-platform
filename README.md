@@ -31,8 +31,8 @@ APP_ORIGIN=http://localhost:3001
 1. Open the login page and expand **First time here? Create an adult account**.
 2. Register the reserved administrator email and verify the email from Supabase. Choose your own password; do not share it in chat or source control.
 3. The private, one-use administrator reservation activates that verified account automatically.
-4. Administrators use `/admin` with a separate sidebar; `/admin/login` is the dedicated sign-in. Other adults start pending; assign their roles under **Parents & teachers**.
-5. Use **Students → Create student** for usernames/passwords. Use **Classes → Create class → Manage class** for enrolments and teacher assignments, and **Parent links** for families. An authorised parent/teacher may reset their student's password.
+4. Administrators use `/admin` with a separate sidebar; `/admin/login` is the dedicated sign-in. Other adults start pending; assign their roles under **Account requests**. Assigned accounts appear on separate **Parents** and **Teachers** pages.
+5. Use **Students → Create student** for usernames/passwords. Use **Classes → Create class → Manage class** for enrolments and teacher assignments, and **Parent links** for families. Each student record shows linked parent contact details and a shortcut to manage those links. An authorised parent/teacher may reset their student's password.
 
 The selected project has its first-admin reservation configured. A fresh project needs a deliberate privileged reservation after applying migrations; the repository does not grant admin based on user-editable metadata. Supabase email delivery/SMTP must work for adult signup and recovery.
 
@@ -50,7 +50,7 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-The PostgreSQL tests use PGlite locally and apply the actual migrations. They do not modify the hosted database. Browser tests cover signed-out login, invalid credentials, origin rejection, and mobile/keyboard access. They do not claim authenticated family/account flows are complete.
+The PostgreSQL tests use PGlite locally and apply the actual migrations. They do not modify the hosted database. Browser tests cover signed-out login, invalid credentials, origin rejection, and mobile/keyboard access. The opt-in `e2e/admin-flow.spec.ts` also verifies authenticated class enrolment, parent links, teacher assignment, student sign-in, and access revocation. Run it only with an explicitly authorized administrator storage-state file outside the repository via `CODELAH_ADMIN_STATE=/absolute/private/path/admin.json npm run test:e2e -- e2e/admin-flow.spec.ts`. It creates real labelled QA fixtures, removes its class, and suspends its QA accounts; Auth identities remain. It does not test adult email onboarding or recovery. Keep that session file private and never commit it.
 
 ## Structure
 

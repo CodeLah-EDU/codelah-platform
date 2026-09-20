@@ -10,9 +10,9 @@ import {
 export default async function Relationships({
   searchParams,
 }: {
-  searchParams: Promise<{ message?: string }>;
+  searchParams: Promise<{ message?: string; student?: string }>;
 }) {
-  const [{ people, links }, { message }] = await Promise.all([
+  const [{ people, links }, { message, student }] = await Promise.all([
     adminData(),
     searchParams,
   ]);
@@ -94,7 +94,13 @@ export default async function Relationships({
               </label>
               <label>
                 Student
-                <select name="student_id" required>
+                <select
+                  name="student_id"
+                  required
+                  defaultValue={
+                    students.some((s) => s.id === student) ? student : ''
+                  }
+                >
                   <PeopleOptions people={students} />
                 </select>
               </label>

@@ -45,6 +45,8 @@ export function managementReturnPath(value: string): string {
     '/admin/students',
     '/admin/students/new',
     '/admin/adults',
+    '/admin/parents',
+    '/admin/teachers',
     '/admin/classes',
     '/admin/classes/new',
     '/admin/relationships',

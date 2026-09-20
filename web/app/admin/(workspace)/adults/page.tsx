@@ -15,27 +15,26 @@ export default async function Adults({
     adminData(),
     searchParams,
   ]);
-  const adults = people.filter(
-    (p) => p.role !== 'student' && p.role !== 'admin',
-  );
+  const adults = people.filter((p) => p.role === 'pending');
   return (
     <>
       <AdminHeading
-        title="Parents & teachers"
-        description="Review verified adult accounts and assign their access."
+        title="Account requests"
+        description="Assign a parent or teacher role to new adult accounts."
       />
       <AdminNotice message={message} />
       <div className="notice">
         Adults register through the parent / teacher sign-in page and confirm
-        their email. Their account then appears here for setup.
+        their email. Their account then appears here for setup. Assigned
+        accounts are listed on the Parents or Teachers page.
       </div>
       <section className="panel">
         <div className="admin-section-heading">
-          <h2>Adult accounts</h2>
+          <h2>Awaiting a role</h2>
           <span className="muted">{adults.length} accounts</span>
         </div>
         {!adults.length ? (
-          <Empty>No parent or teacher accounts yet.</Empty>
+          <Empty>No accounts awaiting a role.</Empty>
         ) : (
           <ul className="admin-directory">
             {adults.map((p) => (
