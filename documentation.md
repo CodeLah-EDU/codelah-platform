@@ -113,6 +113,7 @@ Proposed review interaction: edit attendance and a weekly note in the teacher vi
 
 - Teachers and administrators schedule a lesson in Singapore time for an assigned class. Duration is limited to the agreed 90–120 minutes at both the form handler and database constraint. Teachers can mark lessons completed or cancelled.
 - Teachers add worksheet instructions and optional HTTP(S) worksheet links. Students see these beside the lesson and can submit or revise a text response. Teachers can review the response without rewriting the student's work.
+- Teachers can upload private worksheet files, and students can upload project or answer files. Files are limited to 10 MB, stored in a private Supabase bucket, and downloaded through links that expire after ten minutes. Parents see files only for their linked child; assigned teachers see files only for students in their class.
 - Teachers record attendance and a note per student. Family members see only their own child's attendance and submission.
 - Teachers save private feedback drafts and publish a report for each student. A later draft does not change the last published family report; publishing again updates that child's report. Linked parents and students see published reports only.
 - The `202609200001_teaching_workflow.sql` migration was applied to the selected Supabase project after inspecting its migration list and confirming the lesson tables were absent. Source and project use the same ordered account and lesson schemas.
@@ -123,7 +124,6 @@ Proposed review interaction: edit attendance and a weekly note in the teacher vi
 ### Remaining Phase 3 work
 
 - Finish a live teacher–student–parent browser cycle and desktop/mobile review with QA accounts, including revocation.
-- Decide whether file uploads are needed. The first teaching cycle supports worksheet links and text responses; uploads would need managed object storage and separate access checks.
 - The embedded video classroom remains Phase 4, and payments remain Phase 5.
 
 ## 7. Live classroom — proposed approach
@@ -440,3 +440,11 @@ Roles must not come from a role selector or editable signup metadata. New identi
 - The full lesson schedule now separates upcoming lessons from previous and cancelled records, keeping recent history available without mixing it into the next-class list.
 - Empty, loading failure, long text, and small-screen layouts use the existing CodeLah design system. Database row-level security remains the source of truth for which lessons and reports each account can retrieve.
 - Verification: application lint, TypeScript, production build, Git whitespace checks, and all 29 account/lesson tests pass. The authenticated multi-role browser run still requires a renewed administrator test session.
+
+### 2026-09-24 — private lesson files
+
+- Added a private `lesson-files` Supabase bucket and file metadata tied to each lesson. Teachers and administrators can upload worksheet files; students can upload their own project or answer files.
+- Enforced file access in PostgreSQL Storage policies as well as the application. Materials follow lesson access, while student submissions are limited to that student, their linked parent, and the assigned teacher or administrator.
+- Accepted PDFs, common images and Office documents, ZIP and Scratch projects, and common source-code files up to 10 MB. Active web source is served as plain text, SVG and executable files are rejected, and downloads use ten-minute signed URLs with attachment filenames.
+- Added access tests for linked-family visibility, classmate isolation, forged storage paths, and immediate revocation. Added file-validation tests and lesson-page upload, download, and removal controls.
+- Applied `202609240001_lesson_files.sql` to the selected Supabase project as migration `20260924132430 lesson_files`. Verification confirmed the bucket is private, has the 10 MB server-side limit and MIME allowlist, and all six metadata/storage policies exist. Apply the source migration after the earlier account and teaching-workflow migrations when preparing another project.

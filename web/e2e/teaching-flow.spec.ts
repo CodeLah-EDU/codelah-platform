@@ -71,6 +71,7 @@ test('password permissions and the complete teacher–student–parent lesson cy
   const fixtures: { id: string; username: string; name: string }[] = [];
   const contexts: BrowserContext[] = [];
   let classId: string | undefined;
+  let lessonId: string | undefined;
   async function fixture(
     role: 'student' | 'parent' | 'teacher',
     label: string = role,
@@ -275,7 +276,7 @@ test('password permissions and the complete teacher–student–parent lesson cy
     await expect(t.page).toHaveURL(
       /\/dashboard\/lessons\/[0-9a-f-]{36}\?message=created$/,
     );
-    const lessonId = new URL(t.page.url()).pathname.split('/').at(-1)!;
+    lessonId = new URL(t.page.url()).pathname.split('/').at(-1)!;
     const lessonUrl = `${origin}/dashboard/lessons/${lessonId}`;
     await expect(
       t.page.getByText('15:00–16:30 SGT', { exact: false }),
@@ -298,6 +299,19 @@ test('password permissions and the complete teacher–student–parent lesson cy
     await expect(
       t.page.getByRole('heading', { name: 'Loop practice', exact: true }),
     ).toBeVisible();
+    await t.page
+      .getByLabel('Upload a worksheet file', { exact: true })
+      .setInputFiles({
+        name: 'loop-sheet.txt',
+        mimeType: 'text/plain',
+        buffer: Buffer.from('Write a loop that prints 1 to 5.'),
+      });
+    await t.page
+      .getByRole('button', { name: 'Upload worksheet', exact: true })
+      .click();
+    await expect(
+      t.page.getByRole('link', { name: 'loop-sheet.txt', exact: true }),
+    ).toBeVisible();
     await sp.goto(lessonUrl);
     await expect(
       sp.getByRole('heading', { name: 'Loop practice', exact: true }),
@@ -309,11 +323,25 @@ test('password permissions and the complete teacher–student–parent lesson cy
     await expect(
       sp.getByRole('button', { name: 'Update submission', exact: true }),
     ).toBeVisible();
+    await sp
+      .getByLabel('Add a project or answer file', { exact: true })
+      .setInputFiles({
+        name: 'answer.py',
+        mimeType: 'text/plain',
+        buffer: Buffer.from('for i in range(1, 6): print(i)'),
+      });
+    await sp.getByRole('button', { name: 'Upload file', exact: true }).click();
+    await expect(
+      sp.getByRole('link', { name: 'answer.py', exact: true }),
+    ).toBeVisible();
     await t.page.goto(lessonUrl);
     const learner = t.page.locator(`#learner-${student.id}`);
     await expect(learner.locator('pre')).toHaveText(
       'for i in range(1, 6): print(i)',
     );
+    await expect(
+      learner.getByRole('link', { name: 'answer.py', exact: true }),
+    ).toBeVisible();
     await learner
       .getByLabel('Review note', { exact: true })
       .fill('Good loop boundaries.');
@@ -386,6 +414,9 @@ test('password permissions and the complete teacher–student–parent lesson cy
     await expect(p.page.locator('pre')).toHaveText(
       'for i in range(1, 6): print(i)',
     );
+    await expect(
+      p.page.getByRole('link', { name: 'answer.py', exact: true }),
+    ).toBeVisible();
     await p.page.setViewportSize({ width: 390, height: 844 });
     await p.page.screenshot({
       path: 'test-results/parent-lesson-mobile.png',
@@ -447,13 +478,25 @@ test('password permissions and the complete teacher–student–parent lesson cy
       }),
     ).toHaveCount(0);
     console.log(
-      'Phase 3: schedule, worksheet, submission, review, attendance, private drafts, published snapshots and parent revocation passed.',
+      'Phase 3: schedule, private files, submission, review, attendance, private drafts, published snapshots and parent revocation passed.',
     );
   } finally {
     // Cleanup gets its own time budget even after a failed assertion.
     test.setTimeout(300000);
     for (const ctx of contexts) await ctx.close();
     const errors: string[] = [];
+    if (lessonId) {
+      const storedFiles = await admin
+        .from('lesson_files')
+        .select('storage_path')
+        .eq('lesson_id', lessonId);
+      if (storedFiles.error) errors.push(storedFiles.error.message);
+      const paths = (storedFiles.data ?? []).map((file) => file.storage_path);
+      if (paths.length) {
+        const removed = await admin.storage.from('lesson-files').remove(paths);
+        if (removed.error) errors.push(removed.error.message);
+      }
+    }
     if (classId) {
       const result = await admin
         .from('classrooms')

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { currentAccount } from "@/lib/supabase/access";
 import { isId, lessonDate, lessonTime, resourceLink } from "@/lib/lessons";
+import { fileSize, LESSON_FILE_ACCEPT, LESSON_FILE_BUCKET } from "@/lib/lesson-files";
 import { SaveForm } from "@/components/lessons/save-form";
 
 type Person = { id: string; display_name: string; role: string };
@@ -22,6 +23,16 @@ type Feedback = {
   practice: string;
   status?: string;
   published_at?: string;
+};
+type LessonFile = {
+  id: string;
+  kind: "material" | "submission";
+  student_id: string | null;
+  storage_path: string;
+  file_name: string;
+  size_bytes: number;
+  created_at: string;
+  download_url?: string | null;
 };
 function Fields({
   lessonId,
@@ -46,6 +57,40 @@ function safeLink(value: string | null) {
   } catch {
     return null;
   }
+}
+function FileList({
+  files,
+  lessonId,
+  canDelete = false,
+}: {
+  files: LessonFile[];
+  lessonId: string;
+  canDelete?: boolean;
+}) {
+  if (!files.length) return null;
+  return (
+    <ul className="lesson-file-list">
+      {files.map((file) => (
+        <li key={file.id}>
+          <div>
+            {file.download_url ? (
+              <a href={file.download_url}>{file.file_name}</a>
+            ) : (
+              <span>{file.file_name}</span>
+            )}
+            <small>{fileSize(file.size_bytes)}</small>
+          </div>
+          {canDelete && (
+            <SaveForm action="/dashboard/lessons/files" className="compact-form">
+              <Fields lessonId={lessonId} action="delete" />
+              <input type="hidden" name="file_id" value={file.id} />
+              <button className="text-button">Remove</button>
+            </SaveForm>
+          )}
+        </li>
+      ))}
+    </ul>
+  );
 }
 export default async function LessonDetail({
   params,
@@ -83,6 +128,7 @@ export default async function LessonDetail({
     reportsResult,
     rosterResult,
     classResult,
+    filesResult,
   ] = await Promise.all([
     client
       .from("lesson_materials")
@@ -110,6 +156,11 @@ export default async function LessonDetail({
       .eq("classroom_id", lesson.classroom_id)
       .eq("active", true),
     client.from("classrooms").select("name").eq("id", lesson.classroom_id).single(),
+    client
+      .from("lesson_files")
+      .select("id,kind,student_id,storage_path,file_name,size_bytes,created_at")
+      .eq("lesson_id", id)
+      .order("created_at"),
   ]);
   const studentIds = (rosterResult.data ?? []).map((row) => row.student_id);
   const peopleResult = studentIds.length
@@ -127,6 +178,7 @@ export default async function LessonDetail({
     reportsResult,
     rosterResult,
     classResult,
+    filesResult,
     peopleResult,
   ].some((r) => r.error);
   const people = (peopleResult.data ?? []) as Person[];
@@ -135,6 +187,16 @@ export default async function LessonDetail({
   const attendance = (attendanceResult.data ?? []) as Attendance[];
   const feedback = (feedbackResult.data ?? []) as Feedback[];
   const reports = (reportsResult.data ?? []) as Feedback[];
+  const lessonFiles = (filesResult.data ?? []) as LessonFile[];
+  const files = await Promise.all(
+    lessonFiles.map(async (file) => {
+      const signed = await client.storage
+        .from(LESSON_FILE_BUCKET)
+        .createSignedUrl(file.storage_path, 600, { download: file.file_name });
+      return { ...file, download_url: signed.data?.signedUrl ?? null };
+    }),
+  );
+  const materialFiles = files.filter((file) => file.kind === "material");
   const ownSubmission = submissions.find((s) => s.student_id === account?.id);
   const messages: Record<string, string> = {
     created: "Lesson scheduled.",
@@ -242,6 +304,29 @@ export default async function LessonDetail({
                 </SaveForm>
               </details>
             )}
+            <div className="lesson-file-block">
+              <h3>Worksheet files</h3>
+              <FileList files={materialFiles} lessonId={id} canDelete={teacher} />
+              {!materialFiles.length && (
+                <p className="muted">No worksheet files have been uploaded yet.</p>
+              )}
+              {teacher && lesson.status !== "cancelled" && (
+                <SaveForm
+                  action="/dashboard/lessons/files"
+                  className="account-form file-upload-form"
+                  encType="multipart/form-data"
+                >
+                  <Fields lessonId={id} action="upload" />
+                  <input type="hidden" name="kind" value="material" />
+                  <label>
+                    Upload a worksheet file
+                    <input name="file" type="file" accept={LESSON_FILE_ACCEPT} required />
+                  </label>
+                  <p className="muted">PDF, image, document, ZIP, Scratch or source file · 10 MB maximum</p>
+                  <button className="button primary">Upload worksheet</button>
+                </SaveForm>
+              )}
+            </div>
           </section>
           {account?.role === "student" && (
             <section className="panel">
@@ -270,6 +355,33 @@ export default async function LessonDetail({
               {ownSubmission?.submitted_at && (
                 <p className="muted">Last submitted {lessonDate(ownSubmission.submitted_at)}.</p>
               )}
+              <div className="lesson-file-block">
+                <h3>Your submitted files</h3>
+                <FileList
+                  files={files.filter((file) => file.student_id === account.id)}
+                  lessonId={id}
+                  canDelete
+                />
+                {!files.some((file) => file.student_id === account.id) && (
+                  <p className="muted">You have not uploaded a file for this lesson.</p>
+                )}
+                {lesson.status !== "cancelled" && (
+                  <SaveForm
+                    action="/dashboard/lessons/files"
+                    className="account-form file-upload-form"
+                    encType="multipart/form-data"
+                  >
+                    <Fields lessonId={id} action="upload" />
+                    <input type="hidden" name="kind" value="submission" />
+                    <label>
+                      Add a project or answer file
+                      <input name="file" type="file" accept={LESSON_FILE_ACCEPT} required />
+                    </label>
+                    <p className="muted">PDF, image, document, ZIP, Scratch or source file · 10 MB maximum</p>
+                    <button className="button primary">Upload file</button>
+                  </SaveForm>
+                )}
+              </div>
               {ownSubmission?.teacher_note && (
                 <aside className="notice preserve-lines">
                   <strong>Teacher’s review</strong>
@@ -292,7 +404,8 @@ export default async function LessonDetail({
                   const mark = attendance.find((item) => item.student_id === person.id),
                     draft = feedback.find((item) => item.student_id === person.id),
                     submission = submissions.find((item) => item.student_id === person.id),
-                    report = reports.find((item) => item.student_id === person.id);
+                    report = reports.find((item) => item.student_id === person.id),
+                    personFiles = files.filter((file) => file.student_id === person.id);
                   return (
                     <article className="panel" key={person.id} id={`learner-${person.id}`}>
                       <h3>{person.display_name}</h3>
@@ -315,9 +428,12 @@ export default async function LessonDetail({
                               <button className="button">Save review</button>
                             </SaveForm>
                           </>
+                        ) : personFiles.length ? (
+                          <p className="muted">A file has been submitted.</p>
                         ) : (
                           <p className="muted">No submission yet.</p>
                         )}
+                        <FileList files={personFiles} lessonId={id} canDelete />
                       </div>
                       <details>
                         <summary>Attendance · {mark?.status ?? "unmarked"}</summary>
@@ -405,7 +521,8 @@ export default async function LessonDetail({
               {people.map((person) => {
                 const mark = attendance.find((item) => item.student_id === person.id),
                   report = reports.find((item) => item.student_id === person.id),
-                  submission = submissions.find((item) => item.student_id === person.id);
+                  submission = submissions.find((item) => item.student_id === person.id),
+                  personFiles = files.filter((file) => file.student_id === person.id);
                 return (
                   <article className="family-report" key={person.id}>
                     <h3>{person.display_name}</h3>
@@ -429,7 +546,7 @@ export default async function LessonDetail({
                     {account?.role === "parent" && (
                       <details>
                         <summary>
-                          Student work · {submission ? "submitted" : "not submitted yet"}
+                          Student work · {submission || personFiles.length ? "submitted" : "not submitted yet"}
                         </summary>
                         {submission && (
                           <>
@@ -441,6 +558,7 @@ export default async function LessonDetail({
                             )}
                           </>
                         )}
+                        <FileList files={personFiles} lessonId={id} />
                       </details>
                     )}
                   </article>

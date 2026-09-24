@@ -5,10 +5,12 @@ export function SaveForm({
   children,
   action = "/dashboard/lessons/update",
   className = "account-form",
+  encType,
 }: {
   children: ReactNode;
   action?: string;
   className?: string;
+  encType?: "multipart/form-data";
 }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -30,7 +32,7 @@ export function SaveForm({
     }
   }
   return (
-    <form action={action} method="post" onSubmit={submit} className={className} aria-busy={saving}>
+    <form action={action} method="post" encType={encType} onSubmit={submit} className={className} aria-busy={saving}>
       <fieldset disabled={saving}>{children}</fieldset>
       {saving && <p role="status">Saving…</p>}
       {error && (

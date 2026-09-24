@@ -4,7 +4,7 @@ CodeLah is a coding tuition platform for four-student classes in Singapore. Deve
 
 ## Current phase
 
-Phase 3 now has a weekly dashboard, saved lesson schedule, worksheet instructions and links, student submissions, attendance, and published family reports at `/dashboard/lessons`. Phase 2 live sign-in, relationship, password reset, and revocation checks are underway; the founder confirmed delivery of a recovery email. The Phase 1 fictional dashboard remains at `/demo`.
+Phase 3 now has a weekly dashboard, saved lesson schedule, private worksheet and project files, text submissions, attendance, and published family reports at `/dashboard/lessons`. Phase 2 live sign-in, relationship, password reset, and revocation checks are underway; the founder confirmed delivery of a recovery email. The Phase 1 fictional dashboard remains at `/demo`.
 
 ## Run locally
 
@@ -61,6 +61,6 @@ The PostgreSQL tests use PGlite locally and apply the actual migrations. They do
 - `web/e2e/`: Playwright browser checks.
 - `web/.openai/hosting.json`: existing private Phase 1 Sites preview configuration.
 
-The app uses React, TypeScript, and Vinext. Live video and payments remain later phases. Phase 3 worksheet links and text submissions are available locally; file uploads are not yet implemented. The existing Sites preview remains Phase 1; the account and lesson workflows currently run locally and require separate hosting configuration before external use.
+The app uses React, TypeScript, and Vinext. Live video and payments remain later phases. Phase 3 worksheet links, text responses, and private files use the connected Supabase project; uploaded files are limited to 10 MB and downloads use short-lived signed links. The existing Sites preview remains Phase 1; the account and lesson workflows currently run locally and require separate hosting configuration before external use.
 
 `npm run lint` additionally checks the unused starter catalog and reports 19 existing errors there. Application lint checks CodeLah code. Dependency advisories and pre-pilot hardening are tracked in the project documentation.

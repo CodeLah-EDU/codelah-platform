@@ -10,7 +10,19 @@ before(async () => {
     create function auth.uid() returns uuid language sql stable as
     $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
     grant usage on schema auth to authenticated;
-    grant execute on function auth.uid() to authenticated;`);
+    grant execute on function auth.uid() to authenticated;
+    create schema storage;
+    create table storage.buckets (
+      id text primary key, name text not null, public boolean not null default false,
+      file_size_limit bigint, allowed_mime_types text[]
+    );
+    create table storage.objects (
+      id uuid primary key default gen_random_uuid(), bucket_id text not null references storage.buckets(id),
+      name text not null, owner_id text
+    );
+    alter table storage.objects enable row level security;
+    grant usage on schema storage to authenticated;
+    grant select,insert,delete on storage.objects to authenticated;`);
   await db.exec(
     await readFile(
       new URL(
@@ -42,6 +54,15 @@ before(async () => {
     await readFile(
       new URL(
         '../../supabase/migrations/202609200001_teaching_workflow.sql',
+        import.meta.url,
+      ),
+      'utf8',
+    ),
+  );
+  await db.exec(
+    await readFile(
+      new URL(
+        '../../supabase/migrations/202609240001_lesson_files.sql',
         import.meta.url,
       ),
       'utf8',
@@ -496,6 +517,86 @@ test('unrelated teachers and students cannot create feedback or attendance for o
       ),
     ),
     /row-level security/,
+  );
+});
+test('lesson files are private to lesson members and the relevant child', async () => {
+  await learningRecords(
+    2,
+    async () => {
+      assert.deepEqual(
+        (await visible('lesson_files'))
+          .map((row) => row.file_name)
+          .sort((a, b) => a.localeCompare(b)),
+        ['child-six.py', 'worksheet.pdf'],
+      );
+      assert.deepEqual(
+        (
+          await db.query('select name from storage.objects order by name')
+        ).rows.map((row) => row.name),
+        [
+          `${id(30)}/materials/worksheet.pdf`,
+          `${id(30)}/submissions/${id(6)}/child-six.py`,
+        ],
+      );
+    },
+    `insert into lesson_files(lesson_id,kind,storage_path,file_name,mime_type,size_bytes,created_by)
+      values ('${id(30)}','material','${id(30)}/materials/worksheet.pdf','worksheet.pdf','application/pdf',100,'${id(4)}');
+    insert into lesson_files(lesson_id,kind,student_id,student_role,storage_path,file_name,mime_type,size_bytes,created_by)
+      values ('${id(30)}','submission','${id(6)}','student','${id(30)}/submissions/${id(6)}/child-six.py','child-six.py','text/plain',100,'${id(6)}'),
+      ('${id(30)}','submission','${id(8)}','student','${id(30)}/submissions/${id(8)}/classmate.py','classmate.py','text/plain',100,'${id(8)}');
+    insert into storage.objects(bucket_id,name) values
+      ('lesson-files','${id(30)}/materials/worksheet.pdf'),
+      ('lesson-files','${id(30)}/submissions/${id(6)}/child-six.py'),
+      ('lesson-files','${id(30)}/submissions/${id(8)}/classmate.py');`,
+  );
+});
+test('students may upload only their own submission path', async () => {
+  await learningRecords(6, async () => {
+    const ownPath = `${id(30)}/submissions/${id(6)}/new.py`;
+    await db.query(
+      "insert into storage.objects(bucket_id,name) values ('lesson-files',$1)",
+      [ownPath],
+    );
+    await db.query(
+      `insert into lesson_files(lesson_id,kind,student_id,student_role,storage_path,file_name,mime_type,size_bytes,created_by)
+       values ($1,'submission',$2,'student',$3,'new.py','text/plain',20,$2)`,
+      [id(30), id(6), ownPath],
+    );
+    assert.equal((await visible('lesson_files')).length, 1);
+    await db.exec('savepoint forged_material');
+    await assert.rejects(
+      db.query(
+        "insert into storage.objects(bucket_id,name) values ('lesson-files',$1)",
+        [`${id(30)}/materials/forged.pdf`],
+      ),
+      /row-level security/,
+    );
+    await db.exec('rollback to savepoint forged_material');
+    await db.exec('savepoint forged_student');
+    await assert.rejects(
+      db.query(
+        "insert into storage.objects(bucket_id,name) values ('lesson-files',$1)",
+        [`${id(30)}/submissions/${id(8)}/forged.py`],
+      ),
+      /row-level security/,
+    );
+    await db.exec('rollback to savepoint forged_student');
+  });
+});
+test('revoking a family relationship removes lesson-file access immediately', async () => {
+  await learningRecords(
+    2,
+    async () => {
+      assert.equal((await visible('lesson_files')).length, 0);
+      assert.equal(
+        (await db.query('select * from storage.objects')).rows.length,
+        0,
+      );
+    },
+    `insert into lesson_files(lesson_id,kind,storage_path,file_name,mime_type,size_bytes,created_by)
+      values ('${id(30)}','material','${id(30)}/materials/revoked.pdf','revoked.pdf','application/pdf',100,'${id(4)}');
+    insert into storage.objects(bucket_id,name) values ('lesson-files','${id(30)}/materials/revoked.pdf');
+    update parent_student_links set active=false where parent_id='${id(2)}';`,
   );
 });
 test('database rejects unsafe links, invalid duration, empty publication and cancelled submissions', async () => {
