@@ -4,7 +4,7 @@ CodeLah is a coding tuition platform for four-student classes in Singapore. Deve
 
 ## Current phase
 
-Phase 3 now has a saved lesson schedule, worksheet instructions and links, student submissions, attendance, and published family reports at `/dashboard/lessons`. Phase 2 live sign-in, relationship, password reset, and revocation checks are underway; the founder confirmed delivery of a recovery email. The Phase 1 fictional dashboard remains at `/demo`.
+Phase 3 now has a weekly dashboard, saved lesson schedule, worksheet instructions and links, student submissions, attendance, and published family reports at `/dashboard/lessons`. Phase 2 live sign-in, relationship, password reset, and revocation checks are underway; the founder confirmed delivery of a recovery email. The Phase 1 fictional dashboard remains at `/demo`.
 
 ## Run locally
 

@@ -2,7 +2,24 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { currentAccount } from '@/lib/supabase/access';
 import type { Account } from '@/lib/accounts';
+import { lessonDate, lessonTime, requestTimestamp } from '@/lib/lessons';
 type Classroom = { id: string; name: string; active: boolean };
+type Lesson = {
+  id: string;
+  classroom_id: string;
+  title: string;
+  starts_at: string;
+  ends_at: string;
+  status: 'scheduled' | 'completed' | 'cancelled';
+};
+type LessonReport = {
+  lesson_id: string;
+  student_id: string;
+  topics: string;
+  note: string;
+  practice: string;
+  published_at: string;
+};
 const outcome: Record<string, string> = {
   saved: 'Changes saved.',
   password: 'Student password changed. Share it privately with the student.',
@@ -32,6 +49,15 @@ export default async function Dashboard({
         client.from('classrooms').select('id,name,active').order('name'),
         client.from('enrolments').select('classroom_id,student_id,active'),
         client.from('student_usernames').select('student_id,username'),
+        client
+          .from('lessons')
+          .select('id,classroom_id,title,starts_at,ends_at,status')
+          .order('starts_at', { ascending: true }),
+        client
+          .from('lesson_reports')
+          .select('lesson_id,student_id,topics,note,practice,published_at')
+          .order('published_at', { ascending: false })
+          .limit(6),
       ])
     : [];
   const failed = Boolean(error || results.some((r) => r.error));
@@ -46,9 +72,23 @@ export default async function Dashboard({
     student_id: string;
     username: string;
   }[];
+  const lessons = (results[4]?.data ?? []) as Lesson[];
+  const reports = (results[5]?.data ?? []) as LessonReport[];
   const students = people.filter((p) => p.role === 'student');
   const name = (id: string) =>
     people.find((p) => p.id === id)?.display_name ?? 'Linked account';
+  const className = (id: string) =>
+    classes.find((classroom) => classroom.id === id)?.name ?? 'Your class';
+  const now = requestTimestamp();
+  const upcoming = lessons
+    .filter(
+      (lesson) =>
+        lesson.status === 'scheduled' &&
+        new Date(lesson.ends_at).valueOf() >= now,
+    )
+    .slice(0, 3);
+  const reportLesson = (id: string) =>
+    lessons.find((lesson) => lesson.id === id);
   return (
     <main id="main" className="account-shell">
       <header className="account-header">
@@ -173,12 +213,90 @@ export default async function Dashboard({
               )}
             </section>
           </div>
-          <section className="panel">
-            <h2>Your teaching week</h2>
-            <p className="muted">
-              View the saved lesson schedule for your classes and learning.
-            </p>
-            <Link href="/dashboard/lessons">Open lesson schedule →</Link>
+          <section className="panel teaching-week">
+            <div className="teaching-week-heading">
+              <div>
+                <p className="eyebrow">TEACHING WEEK</p>
+                <h2>Coming up</h2>
+              </div>
+              <Link href="/dashboard/lessons">Full schedule →</Link>
+            </div>
+            {upcoming.length ? (
+              <ul className="weekly-lessons">
+                {upcoming.map((lesson) => (
+                  <li key={lesson.id}>
+                    <div>
+                      <span className="account-meta">
+                        {className(lesson.classroom_id)}
+                      </span>
+                      <h3>
+                        <Link href={`/dashboard/lessons/${lesson.id}`}>
+                          {lesson.title}
+                        </Link>
+                      </h3>
+                    </div>
+                    <p>
+                      {lessonDate(lesson.starts_at)}
+                      <span>
+                        {lessonTime(lesson.starts_at, lesson.ends_at)}
+                      </span>
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="muted">No upcoming lessons are scheduled yet.</p>
+            )}
+            {(account?.role === 'parent' || account?.role === 'student') && (
+              <div className="weekly-updates">
+                <h3>Latest teacher updates</h3>
+                {reports.length ? (
+                  <div className="weekly-report-list">
+                    {reports.slice(0, 3).map((report) => {
+                      const lesson = reportLesson(report.lesson_id);
+                      return (
+                        <article
+                          key={`${report.lesson_id}-${report.student_id}`}
+                        >
+                          <div className="weekly-report-heading">
+                            <div>
+                              <span className="account-meta">
+                                {name(report.student_id)}
+                              </span>
+                              <h4>
+                                <Link
+                                  href={`/dashboard/lessons/${report.lesson_id}`}
+                                >
+                                  {lesson?.title ?? 'Lesson update'}
+                                </Link>
+                              </h4>
+                            </div>
+                            <span className="account-meta">
+                              {lessonDate(report.published_at)}
+                            </span>
+                          </div>
+                          {report.topics && (
+                            <p>
+                              <strong>Covered:</strong> {report.topics}
+                            </p>
+                          )}
+                          <p className="preserve-lines">{report.note}</p>
+                          {report.practice && (
+                            <p className="muted">
+                              <strong>Next:</strong> {report.practice}
+                            </p>
+                          )}
+                        </article>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="muted">
+                    Published lesson feedback will appear here.
+                  </p>
+                )}
+              </div>
+            )}
           </section>
         </>
       )}

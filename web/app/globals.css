@@ -1147,8 +1147,10 @@ h3 {
   justify-content: space-between;
   gap: 24px;
 }
-.lesson-record h2 {
+.lesson-record h2,
+.lesson-record h3 {
   margin: 5px 0 8px;
+  font-size: 1.35rem;
 }
 .lesson-record-date {
   font-family: 'IBM Plex Mono', monospace;
@@ -1193,3 +1195,88 @@ h3 {
 .account-form fieldset:disabled { opacity: .65; }
 .account-form textarea { resize: vertical; min-height: 80px; width: 100%; font: inherit; line-height: 1.6; padding: 12px; border: 1px solid #9aaa92; border-radius: 8px; background: white; }
 @media(max-width:800px) { .lesson-roster {grid-template-columns:1fr;} .lesson-workspace h1 {overflow-wrap:anywhere;} .form-actions {flex-wrap:wrap;} }
+
+.teaching-week {
+  margin-top: 28px;
+}
+.teaching-week-heading,
+.weekly-report-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+.teaching-week-heading {
+  margin-bottom: 20px;
+}
+.teaching-week-heading h2,
+.weekly-updates h3 {
+  margin: 4px 0 0;
+}
+.weekly-lessons {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--line);
+}
+.weekly-lessons > li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--line);
+}
+.weekly-lessons h3,
+.weekly-report-heading h4 {
+  margin: 3px 0 0;
+}
+.weekly-lessons > li > p {
+  margin: 0;
+  text-align: right;
+  font-weight: 600;
+}
+.weekly-lessons > li > p span {
+  display: block;
+  color: var(--muted);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.8rem;
+  font-weight: 400;
+}
+.weekly-updates {
+  margin-top: 30px;
+  padding-top: 26px;
+  border-top: 1px solid var(--line);
+}
+.weekly-report-list {
+  display: grid;
+  gap: 14px;
+  margin-top: 16px;
+}
+.weekly-report-list article {
+  padding: 18px 20px;
+  border-radius: 10px;
+  background: #f0f2e9;
+}
+.weekly-report-list article > p:last-child {
+  margin-bottom: 0;
+}
+.schedule-groups {
+  display: grid;
+  gap: 42px;
+  max-width: 900px;
+}
+.schedule-groups > section > h2 {
+  margin-bottom: 16px;
+}
+@media (max-width: 640px) {
+  .teaching-week-heading,
+  .weekly-report-heading,
+  .weekly-lessons > li {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .weekly-lessons > li > p {
+    text-align: left;
+  }
+}

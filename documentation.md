@@ -117,6 +117,7 @@ Proposed review interaction: edit attendance and a weekly note in the teacher vi
 - Teachers save private feedback drafts and publish a report for each student. A later draft does not change the last published family report; publishing again updates that child's report. Linked parents and students see published reports only.
 - The `202609200001_teaching_workflow.sql` migration was applied to the selected Supabase project after inspecting its migration list and confirming the lesson tables were absent. Source and project use the same ordered account and lesson schemas.
 - Browser routes: `/dashboard/lessons`, `/dashboard/lessons/new`, and `/dashboard/lessons/[id]`. Admins can open the lesson schedule from their sidebar.
+- The main student/parent dashboard now shows the next three scheduled lessons and the latest three published teacher updates. The full schedule separates upcoming lessons from previous and cancelled lessons.
 - PostgreSQL tests cover classmates' record isolation, unpublished draft privacy, immutable published snapshots, forged review attempts, teacher changes to student submissions, cancelled lessons, role and relationship revocation, invalid durations, and unsafe worksheet URLs.
 
 ### Remaining Phase 3 work
@@ -431,3 +432,11 @@ Roles must not come from a role selector or editable signup metadata. New identi
 - Applied the teaching-workflow migration to the selected Supabase project after confirming its public schema contained only the six Phase 2 tables. Local PostgreSQL tests now include per-student attendance, submission, and report access, draft/published report isolation, role revocation, and constraints. The current source passes 29 automated tests, application lint, TypeScript, production build, and four signed-out Chromium checks.
 - The protected lesson workspace supports scheduling, worksheets by instructions/link, submissions, teacher review, attendance, and family reports. A separate opt-in browser test creates QA users and classes, exercises the full cycle, and suspends its fixtures after cleanup. It is pending a renewed administrator test session before its end-to-end results can be recorded.
 - The existing Sites preview still hosts only the Phase 1 fictional prototype. Real account access for external students/parents requires a hosting path that does not require ChatGPT sign-in, plus the matching Supabase redirect and application origin settings. No public launch is implied by these local/DB changes.
+
+
+### 2026-09-24 — weekly dashboard summary
+
+- Added a role-aware teaching-week section to the authenticated dashboard. Students and linked parents see up to three upcoming lessons with Singapore dates/times and their latest three published teacher reports, including topics covered and suggested practice.
+- The full lesson schedule now separates upcoming lessons from previous and cancelled records, keeping recent history available without mixing it into the next-class list.
+- Empty, loading failure, long text, and small-screen layouts use the existing CodeLah design system. Database row-level security remains the source of truth for which lessons and reports each account can retrieve.
+- Verification: application lint, TypeScript, production build, Git whitespace checks, and all 29 account/lesson tests pass. The authenticated multi-role browser run still requires a renewed administrator test session.

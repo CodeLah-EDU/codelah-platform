@@ -1,5 +1,7 @@
 export const isId = (value: string) =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+// Read once per server render and pass the value through filtering logic.
+export const requestTimestamp = () => Date.now();
 export function resourceLink(value: string): string | null {
   if (!value.trim()) return null;
   if (value.length > 2000) throw new Error('Resource link is too long.');
