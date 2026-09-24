@@ -174,12 +174,11 @@ export default async function Dashboard({
             </section>
           </div>
           <section className="panel">
-            <h2>Next: your teaching week</h2>
+            <h2>Your teaching week</h2>
             <p className="muted">
-              Lesson schedules, worksheets, and weekly reports will connect here
-              in Phase 3.
+              View the saved lesson schedule for your classes and learning.
             </p>
-            <Link href="/demo">Explore the fictional dashboard demo</Link>
+            <Link href="/dashboard/lessons">Open lesson schedule →</Link>
           </section>
         </>
       )}

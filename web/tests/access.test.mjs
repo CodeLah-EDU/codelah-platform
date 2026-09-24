@@ -38,6 +38,15 @@ before(async () => {
       'utf8',
     ),
   );
+  await db.exec(
+    await readFile(
+      new URL(
+        '../../supabase/migrations/202609200001_teaching_workflow.sql',
+        import.meta.url,
+      ),
+      'utf8',
+    ),
+  );
   for (const [n, role] of [
     [1, 'admin'],
     [2, 'parent'],
@@ -64,7 +73,10 @@ before(async () => {
   await db.exec(`insert into classrooms (id,name) values ('${id(20)}','Scratch'),('${id(21)}','Python');
     insert into parent_student_links(parent_id,student_id) values ('${id(2)}','${id(6)}'),('${id(3)}','${id(7)}');
     insert into teacher_assignments(classroom_id,teacher_id) values ('${id(20)}','${id(4)}'),('${id(21)}','${id(5)}');
-    insert into enrolments(classroom_id,student_id) values ('${id(20)}','${id(6)}'),('${id(21)}','${id(7)}');`);
+    insert into enrolments(classroom_id,student_id) values ('${id(20)}','${id(6)}'),('${id(21)}','${id(7)}');
+    select set_config('request.jwt.claim.sub','${id(4)}',false);
+    insert into lessons(id,classroom_id,title,starts_at,ends_at,created_by)
+      values ('${id(30)}','${id(20)}','Loops lab','2026-10-01 10:00:00+08','2026-10-01 11:30:00+08','${id(4)}');`);
 });
 after(() => db.close());
 async function as(n, fn) {
@@ -124,6 +136,12 @@ test('teachers see assigned students/classes and cannot see parents or another c
       0,
     );
   });
+});
+test('lesson visibility follows class access for teachers, students, and parents', async () => {
+  await as(4, async () => assert.equal((await visible('lessons')).length, 1));
+  await as(6, async () => assert.equal((await visible('lessons')).length, 1));
+  await as(2, async () => assert.equal((await visible('lessons')).length, 1));
+  await as(5, async () => assert.equal((await visible('lessons')).length, 0));
 });
 test('student cannot see classmates or change role or relationships', async () => {
   await as(6, async () => {
@@ -325,4 +343,199 @@ test('shared login limiter denies attempt eleven and hides its records', async (
   } finally {
     await db.exec('rollback');
   }
+});
+
+// Actual PostgreSQL permissions, including callers bypassing the UI entirely.
+async function learningRecords(actor, fn, setup = '') {
+  await db.exec('begin');
+  try {
+    await db.exec(`select set_config('request.jwt.claim.sub','${id(4)}',true);
+    insert into enrolments(classroom_id,student_id) values ('${id(20)}','${id(8)}');
+    insert into lesson_attendance(lesson_id,student_id,status,updated_by) values
+      ('${id(30)}','${id(6)}','present','${id(4)}'),('${id(30)}','${id(8)}','absent','${id(4)}');
+    insert into lesson_feedback(lesson_id,student_id,note,status,updated_by) values
+      ('${id(30)}','${id(6)}','Published child six','published','${id(4)}'),
+      ('${id(30)}','${id(8)}','Other child report','published','${id(4)}');
+    insert into lesson_submissions(lesson_id,student_id,response) values
+      ('${id(30)}','${id(6)}','student six work'),('${id(30)}','${id(8)}','private classmate work');
+    ${setup}`);
+    await db.exec('set local role authenticated');
+    await db.query("select set_config('request.jwt.claim.sub',$1,true)", [
+      id(actor),
+    ]);
+    await fn();
+  } finally {
+    await db.exec('rollback');
+  }
+}
+test('student and parent cannot read classmates attendance, submissions or reports', async () => {
+  for (const actor of [2, 6])
+    await learningRecords(actor, async () => {
+      for (const table of [
+        'lesson_attendance',
+        'lesson_submissions',
+        'lesson_reports',
+      ])
+        assert.deepEqual(
+          (await visible(table)).map((r) => r.student_id),
+          [id(6)],
+        );
+      assert.equal((await visible('lesson_feedback')).length, 0);
+    });
+});
+test('editing a feedback draft preserves the family snapshot and hides draft text', async () => {
+  await learningRecords(
+    2,
+    async () => {
+      assert.equal(
+        (await visible('lesson_reports'))[0].note,
+        'Published child six',
+      );
+      assert.equal((await visible('lesson_feedback')).length, 0);
+    },
+    `update lesson_feedback set note='Private next draft',status='draft' where student_id='${id(6)}';`,
+  );
+});
+test('publishing feedback updates exactly one child report and attributes the author', async () => {
+  await learningRecords(4, async () => {
+    await db.query(
+      "update lesson_feedback set note='Updated report',status='published',updated_by=$1 where student_id=$2",
+      [id(5), id(6)],
+    );
+    const reports = await visible('lesson_reports');
+    assert.equal(
+      reports.find((r) => r.student_id === id(6)).note,
+      'Updated report',
+    );
+    assert.equal(
+      reports.find((r) => r.student_id === id(8)).note,
+      'Other child report',
+    );
+    assert.equal(
+      (await visible('lesson_feedback')).find((r) => r.student_id === id(6))
+        .updated_by,
+      id(4),
+    );
+  });
+});
+test('students cannot forge a review; teachers cannot rewrite submitted work', async () => {
+  await assert.rejects(
+    learningRecords(6, () =>
+      db.query(
+        "update lesson_submissions set teacher_note='Forged praise' where student_id=$1",
+        [id(6)],
+      ),
+    ),
+    /Only a teacher/,
+  );
+  await assert.rejects(
+    learningRecords(4, () =>
+      db.query(
+        "update lesson_submissions set response='Rewritten work' where student_id=$1",
+        [id(6)],
+      ),
+    ),
+    /cannot rewrite/,
+  );
+  await learningRecords(6, async () => {
+    await db.query(
+      "update lesson_submissions set response='My new work' where student_id=$1",
+      [id(6)],
+    );
+    const submission = (await visible('lesson_submissions'))[0];
+    assert.equal(submission.response, 'My new work');
+    assert.equal(submission.teacher_note, null);
+    assert.ok(submission.submitted_at);
+  });
+});
+test('revoked and suspended family members lose all lesson access', async () => {
+  for (const [actor, setup] of [
+    [6, `update accounts set status='suspended' where id='${id(6)}';`],
+    [
+      2,
+      `update parent_student_links set active=false where parent_id='${id(2)}';`,
+    ],
+    [6, `update enrolments set active=false where student_id='${id(6)}';`],
+    [
+      4,
+      `update teacher_assignments set active=false where teacher_id='${id(4)}';`,
+    ],
+  ])
+    await learningRecords(
+      actor,
+      async () => {
+        for (const table of [
+          'lessons',
+          'lesson_materials',
+          'lesson_attendance',
+          'lesson_submissions',
+          'lesson_feedback',
+          'lesson_reports',
+        ])
+          assert.equal((await visible(table)).length, 0, table);
+      },
+      setup,
+    );
+});
+test('unrelated teachers and students cannot create feedback or attendance for other children', async () => {
+  for (const actor of [5, 6, 2])
+    await assert.rejects(
+      learningRecords(actor, () =>
+        db.query(
+          "insert into lesson_feedback(lesson_id,student_id,note,updated_by) values ($1,$2,'Spoofed',$3)",
+          [id(30), id(7), id(actor)],
+        ),
+      ),
+      /row-level security/,
+    );
+  await assert.rejects(
+    learningRecords(4, () =>
+      db.query(
+        "insert into lesson_attendance(lesson_id,student_id,status,updated_by) values ($1,$2,'present',$3)",
+        [id(30), id(7), id(4)],
+      ),
+    ),
+    /row-level security/,
+  );
+});
+test('database rejects unsafe links, invalid duration, empty publication and cancelled submissions', async () => {
+  await assert.rejects(
+    learningRecords(4, () =>
+      db.query(
+        "insert into lesson_materials(lesson_id,title,resource_url,created_by) values ($1,'unsafe','javascript:alert(1)',$2)",
+        [id(30), id(4)],
+      ),
+    ),
+    /material_safe_url/,
+  );
+  await assert.rejects(
+    learningRecords(4, () =>
+      db.query(
+        "update lessons set ends_at=starts_at+interval '20 minutes' where id=$1",
+        [id(30)],
+      ),
+    ),
+    /lesson_duration/,
+  );
+  await assert.rejects(
+    learningRecords(4, () =>
+      db.query(
+        "update lesson_feedback set note='',status='published' where student_id=$1",
+        [id(6)],
+      ),
+    ),
+    /Feedback is required/,
+  );
+  await assert.rejects(
+    learningRecords(
+      6,
+      () =>
+        db.query(
+          "update lesson_submissions set response='Too late' where student_id=$1",
+          [id(6)],
+        ),
+      `update lessons set status='cancelled' where id='${id(30)}';`,
+    ),
+    /Submissions are closed/,
+  );
 });

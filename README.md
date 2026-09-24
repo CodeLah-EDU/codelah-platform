@@ -4,25 +4,23 @@ CodeLah is a coding tuition platform for four-student classes in Singapore. Deve
 
 ## Current phase
 
-Phase 2 adds Supabase accounts, student username/password login, parent–student links, teacher assignments, enrolments, and access controls. The first administrator has confirmed successful activation. The implementation remains under verification; the student/parent/teacher end-to-end checks are still required. The Phase 1 fictional dashboard remains at `/demo`.
+Phase 3 now has a saved lesson schedule, worksheet instructions and links, student submissions, attendance, and published family reports at `/dashboard/lessons`. Phase 2 live sign-in, relationship, password reset, and revocation checks are underway; the founder confirmed delivery of a recovery email. The Phase 1 fictional dashboard remains at `/demo`.
 
 ## Run locally
 
 Use Node.js 22.13 or newer (verified with 22.21.0).
 
 ```sh
-cd web
+git clone --branch dev https://github.com/CodeLah-EDU/codelah-platform.git
+cd codelah-platform/web
+cp .env.example .env.local
 npm ci
 npm run dev
 ```
 
-Open **http://localhost:3001/login**. The existing local `.env.local` is configured for the selected development project. On another checkout, create `web/.env.local` with:
+Open **http://localhost:3001/login**. To review the fictional prototype without an account, open **http://localhost:3001/demo**. Real student, parent, teacher, and administrator dashboards require an account in the shared development project.
 
-```dotenv
-NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=YOUR_PUBLISHABLE_KEY
-APP_ORIGIN=http://localhost:3001
-```
+The committed `.env.example` contains only the Supabase project URL and publishable browser key. It does not contain a service-role key or password. Keep personal passwords and any future server secrets outside Git.
 
 `APP_ORIGIN` must match the browser's origin exactly. Add `http://localhost:3001/auth/confirm` to Supabase **Authentication → URL Configuration → Redirect URLs**. If changing the port or hosting domain, update both values. Keep email confirmation enabled. Never put a Supabase secret/service-role key in browser variables; privileged student account operations run in the Supabase function.
 
@@ -50,7 +48,7 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-The PostgreSQL tests use PGlite locally and apply the actual migrations. They do not modify the hosted database. Browser tests cover signed-out login, invalid credentials, origin rejection, and mobile/keyboard access. The opt-in `e2e/admin-flow.spec.ts` also verifies authenticated class enrolment, parent links, teacher assignment, student sign-in, and access revocation. Run it only with an explicitly authorized administrator storage-state file outside the repository via `CODELAH_ADMIN_STATE=/absolute/private/path/admin.json npm run test:e2e -- e2e/admin-flow.spec.ts`. It creates real labelled QA fixtures, removes its class, and suspends its QA accounts; Auth identities remain. It does not test adult email onboarding or recovery. Keep that session file private and never commit it.
+The PostgreSQL tests use PGlite locally and apply the actual migrations. They do not modify the hosted database. Browser tests cover signed-out login, invalid credentials, origin rejection, and mobile/keyboard access. The opt-in `e2e/admin-flow.spec.ts` also verifies authenticated class enrolment, parent links, teacher assignment, student sign-in, and access revocation. Run it only with an explicitly authorized administrator storage-state file outside the repository via `CODELAH_ADMIN_STATE=/absolute/private/path/admin.json npm run test:e2e -- e2e/admin-flow.spec.ts`. It creates real labelled QA fixtures, removes its class, and suspends its QA accounts; Auth identities remain. It does not test adult email onboarding or recovery. The separate `e2e/teaching-flow.spec.ts` exercises student password resets and the lesson cycle with the same opt-in session. Keep that session file private and never commit it.
 
 ## Structure
 
@@ -63,6 +61,6 @@ The PostgreSQL tests use PGlite locally and apply the actual migrations. They do
 - `web/e2e/`: Playwright browser checks.
 - `web/.openai/hosting.json`: existing private Phase 1 Sites preview configuration.
 
-The app uses React, TypeScript, and Vinext. Live video, payments, persistent lesson reports, and worksheet submissions are later phases. The existing Sites preview remains Phase 1; Phase 2 currently runs locally and requires separate hosting configuration before external use.
+The app uses React, TypeScript, and Vinext. Live video and payments remain later phases. Phase 3 worksheet links and text submissions are available locally; file uploads are not yet implemented. The existing Sites preview remains Phase 1; the account and lesson workflows currently run locally and require separate hosting configuration before external use.
 
 `npm run lint` additionally checks the unused starter catalog and reports 19 existing errors there. Application lint checks CodeLah code. Dependency advisories and pre-pilot hardening are tracked in the project documentation.

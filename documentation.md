@@ -58,7 +58,7 @@ The reference site describes ages 10–17. The platform's exact age eligibility 
 | --- | --- | --- |
 | 1 — Dashboard prototype | Review the student, teacher, and parent experience with fictional sample lessons. | Founder approved moving to Phase 2; browser verification remains outstanding |
 | 2 — Accounts and access | Real authentication, parent–child links, teacher assignments, and enforced permissions. | Implemented locally; administrator activation confirmed, remaining authenticated checks pending |
-| 3 — Teaching workflow | Persistent schedules, worksheets, submissions, attendance, and teacher feedback. | Proposed |
+| 3 — Teaching workflow | Persistent schedules, worksheets, submissions, attendance, and teacher feedback. | In progress — lesson records and scheduling slice implemented |
 | 4 — Live classroom | Embedded video and screen sharing linked to scheduled lessons. | Proposed; provider undecided |
 | 5 — Payments and pilot | SGD billing, receipts, and a small operational pilot. | Proposed |
 
@@ -107,7 +107,25 @@ Proposed review interaction: edit attendance and a weekly note in the teacher vi
 - [x] Production build, TypeScript, application lint, and four state-transition tests pass. Browser interaction checks remain pending.
 - [x] Founder agreed to proceed to Phase 2 on 2026-09-16; this does not substitute for the outstanding browser checks.
 
-## 6. Live classroom — proposed approach
+## 6. Phase 3 — teaching workflow
+
+### Teaching cycle now implemented locally
+
+- Teachers and administrators schedule a lesson in Singapore time for an assigned class. Duration is limited to the agreed 90–120 minutes at both the form handler and database constraint. Teachers can mark lessons completed or cancelled.
+- Teachers add worksheet instructions and optional HTTP(S) worksheet links. Students see these beside the lesson and can submit or revise a text response. Teachers can review the response without rewriting the student's work.
+- Teachers record attendance and a note per student. Family members see only their own child's attendance and submission.
+- Teachers save private feedback drafts and publish a report for each student. A later draft does not change the last published family report; publishing again updates that child's report. Linked parents and students see published reports only.
+- The `202609200001_teaching_workflow.sql` migration was applied to the selected Supabase project after inspecting its migration list and confirming the lesson tables were absent. Source and project use the same ordered account and lesson schemas.
+- Browser routes: `/dashboard/lessons`, `/dashboard/lessons/new`, and `/dashboard/lessons/[id]`. Admins can open the lesson schedule from their sidebar.
+- PostgreSQL tests cover classmates' record isolation, unpublished draft privacy, immutable published snapshots, forged review attempts, teacher changes to student submissions, cancelled lessons, role and relationship revocation, invalid durations, and unsafe worksheet URLs.
+
+### Remaining Phase 3 work
+
+- Finish a live teacher–student–parent browser cycle and desktop/mobile review with QA accounts, including revocation.
+- Decide whether file uploads are needed. The first teaching cycle supports worksheet links and text responses; uploads would need managed object storage and separate access checks.
+- The embedded video classroom remains Phase 4, and payments remain Phase 5.
+
+## 7. Live classroom — proposed approach
 
 ### Recommendation, pending founder agreement
 
@@ -174,7 +192,7 @@ Reviewed 2026-09-15; recheck capabilities and pricing when implementing.
 - [LiveKit video conference component](https://docs.livekit.io/reference/components/react/component/videoconference/)
 - [LiveKit screen sharing](https://docs.livekit.io/transport/media/screenshare/)
 
-## 7. Working process and traceability
+## 8. Working process and traceability
 
 1. Record agreed scope and unresolved decisions in this document.
 2. Implement scoped work on `dev` with fictional data during prototyping.
@@ -184,7 +202,7 @@ Reviewed 2026-09-15; recheck capabilities and pricing when implementing.
 
 Keep confirmed decisions distinct from recommendations. Update this file as the source of project status; use additional focused documents only when the detail warrants them.
 
-## 8. Progress log
+## 9. Progress log
 
 ### 2026-09-15 — repository and planning
 
@@ -265,7 +283,7 @@ Roles must not come from a role selector or editable signup metadata. New identi
 - [x] Supabase MCP authenticated and project contents inspected.
 - [ ] External account login and hosting path confirmed.
 - [x] Versioned account/relationship schema and migrations prepared and applied to the selected project after checking it was empty.
-- [ ] Real sign-in, sign-out, session expiry/refresh, and recovery checked.
+- [ ] Real sign-in, sign-out, session expiry/refresh, and recovery checked. Student sign-out/re-entry and password changes passed a live QA test; founder confirmed delivery of a recovery email. Recovery-link completion and session expiry remain to be checked.
 - [ ] Parent can read a linked child and cannot read another child, including direct API/database access.
 - [ ] Teacher can read assigned classes and cannot read an unassigned class.
 - [ ] Student cannot read other students or modify relationships.
@@ -273,7 +291,7 @@ Roles must not come from a role selector or editable signup metadata. New identi
 - [ ] Client-supplied role changes cannot grant privileges.
 - [ ] Revoking a link or assignment removes access.
 - [ ] Authentication, migration, build, and relevant browser checks recorded.
-- [ ] Founder reviews Phase 2 before Phase 3 starts.
+- [x] Founder requested continued Phase 2 checks and the start of Phase 3 on 2026-09-20; Phase 2 acceptance gaps remain listed here.
 
 ### 2026-09-16 — Phase 2 connection setup
 
@@ -303,7 +321,7 @@ Roles must not come from a role selector or editable signup metadata. New identi
 
 ### 2026-09-16 to 2026-09-19 — Phase 2 implementation and verification
 
-**Status:** implementation is available locally on `dev`; Phase 2 is not yet accepted or complete. No Phase 3 work has started.
+**Status:** implementation is available locally on `dev`; Phase 2 is not yet accepted or complete. Phase 3 has started locally with lesson scheduling and the first teaching workflow slice.
 
 #### Connection and database
 
@@ -344,7 +362,7 @@ Roles must not come from a role selector or editable signup metadata. New identi
 - Check desktop/mobile authenticated dashboards and the privileged Edge Function's successful and denied paths using test accounts.
 - Agree on external hosting and configure its environment/origin/redirect URLs. The app must not require a student's ChatGPT account.
 - Resolve the existing 11 dependency advisories and review the unused starter-catalog lint findings before pilot use.
-- Founder reviews Phase 2 before Phase 3 starts.
+- Founder reviews Phase 2 acceptance items while Phase 3 implementation continues locally.
 
 #### Official implementation references
 
@@ -360,7 +378,7 @@ Roles must not come from a role selector or editable signup metadata. New identi
 - Founder reports reaching the **Administrator dashboard** after registering `hello@codelah.sg` and confirming the email. This completes the initial administrator activation check.
 - This confirms the founder's signup/confirmation path reaches the authenticated admin view. It does not yet verify sign-out/re-entry, password recovery, session renewal, or the multi-account teaching relationships.
 - Next live check: create a clearly labelled test student with a unique username, then sign in as that student in a private browser window. Confirm that the student sees their own account and no administrator controls. Keep the administrator's original browser session open.
-- After student creation/login works, verify a test class, enrolment, linked parent, assigned teacher, password reset, and access revocation. Phase 2 remains open; Phase 3 has not started.
+- After student creation/login works, verify a test class, enrolment, linked parent, assigned teacher, password reset, and access revocation. Phase 2 remains open while Phase 3 continues locally.
 
 ### 2026-09-19 — student creation and sign-in confirmed
 
@@ -404,3 +422,12 @@ Roles must not come from a role selector or editable signup metadata. New identi
 - Validation: live administrator browser flow passes; TypeScript, application lint, production build, and Git whitespace checks pass. The workspace's 20 automated tests pass (19 existing account/demo tests plus the separately edited lesson-visibility test). Concurrent Phase 3 files are preserved and excluded from this administrator change.
 - Test cleanup verified against Supabase: both temporary QA classes removed; all six QA accounts from the two runs suspended. Their Auth identities remain because this app does not expose Auth-account deletion. No existing founder/student passwords were changed. Session files stay outside the repository.
 - Phase 2 acceptance remains open for adult email/recovery and successful/denied student-password-reset flows. This check does not approve later-phase work or external deployment.
+
+
+### 2026-09-20 to 2026-09-21 — Phase 2 follow-up and Phase 3 implementation
+
+- Founder authorized one password-reset email to `hello@codelah.sg` and confirmed it arrived. The recovery link itself was not opened in the live check; the administrator password was not changed.
+- A live QA run confirmed linked-parent student password reset, rejected an old student password, accepted the new password, denied unrelated parent/teacher resets, allowed an assigned teacher reset, allowed student self-service password change, and confirmed sign-out and re-entry. The isolated administrator browser session later expired; a fresh administrator sign-in is needed to finish the combined lesson browser test. A read-only Supabase check confirmed all 10 labelled QA accounts from these runs are suspended and no QA classes remain.
+- Applied the teaching-workflow migration to the selected Supabase project after confirming its public schema contained only the six Phase 2 tables. Local PostgreSQL tests now include per-student attendance, submission, and report access, draft/published report isolation, role revocation, and constraints. The current source passes 29 automated tests, application lint, TypeScript, production build, and four signed-out Chromium checks.
+- The protected lesson workspace supports scheduling, worksheets by instructions/link, submissions, teacher review, attendance, and family reports. A separate opt-in browser test creates QA users and classes, exercises the full cycle, and suspends its fixtures after cleanup. It is pending a renewed administrator test session before its end-to-end results can be recorded.
+- The existing Sites preview still hosts only the Phase 1 fictional prototype. Real account access for external students/parents requires a hosting path that does not require ChatGPT sign-in, plus the matching Supabase redirect and application origin settings. No public launch is implied by these local/DB changes.

@@ -9,6 +9,7 @@ const links = [
   ['/admin/classes', 'Classes', '05'],
   ['/admin/relationships', 'Parent links', '06'],
   ['/admin/adults', 'Account requests', '07'],
+  ['/dashboard/lessons', 'Lesson schedule', '08'],
 ];
 export function AdminNavigation() {
   const pathname = usePathname();
