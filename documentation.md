@@ -59,7 +59,7 @@ The reference site describes ages 10–17. The platform's exact age eligibility 
 | 1 — Dashboard prototype | Review the student, teacher, and parent experience with fictional sample lessons. | Founder approved moving to Phase 2; browser verification remains outstanding |
 | 2 — Accounts and access | Real authentication, parent–child links, teacher assignments, and enforced permissions. | Implemented locally; administrator activation confirmed, remaining authenticated checks pending |
 | 3 — Teaching workflow | Persistent schedules, worksheets, submissions, attendance, and teacher feedback. | In progress — lesson records and scheduling slice implemented |
-| 4 — Live classroom | Embedded video and screen sharing linked to scheduled lessons. | Proposed; provider undecided |
+| 4 — Live classroom | Embedded video and screen sharing linked to scheduled lessons. | In progress — Daily foundation implemented; provider account connection pending |
 | 5 — Payments and pilot | SGD billing, receipts, and a small operational pilot. | Proposed |
 
 Review each phase together before expanding scope. The founder can revise the order. Phase completion requires a working demonstration and appropriate verification, with remaining limitations recorded here.
@@ -126,13 +126,22 @@ Proposed review interaction: edit attendance and a weekly note in the teacher vi
 - Finish a live teacher–student–parent browser cycle and desktop/mobile review with QA accounts, including revocation.
 - The embedded video classroom remains Phase 4, and payments remain Phase 5.
 
-## 7. Live classroom — proposed approach
+## 7. Phase 4 — live classroom
 
-### Recommendation, pending founder agreement
+### Selected initial approach
 
-Embed a managed video service inside the CodeLah lesson page. **Daily Prebuilt** is the initial recommendation for a standard teaching call because it provides an embeddable call interface with camera/microphone setup and screen sharing. **LiveKit** is an alternative if we decide that a deeply customised video layout is central to the product. This is an implementation judgment based on their documented capabilities, not a provider commitment.
+Embed **Daily Prebuilt** inside the CodeLah lesson page for the first classroom version. It supplies the camera/microphone pre-join screen, five-person call UI, and teacher screen sharing while CodeLah retains scheduling and access control. LiveKit remains an option if a deeply customised video layout becomes central later.
 
-No provider account, paid plan, or integration has been created. Final selection should follow a short trial using the expected class size, teacher device, student devices, and Singapore network conditions.
+The provider integration is implemented behind configuration, but no Daily account, API key, room, or paid plan has been created. Activation still requires a Daily API key and a full trial using the expected class size, teacher device, student devices, and Singapore network conditions.
+
+### Phase 4 foundation implemented
+
+- Each scheduled lesson can have one private Daily room. Room metadata follows the same lesson row-level security as schedules and materials.
+- Teachers and administrators prepare the room. Enrolled students and assigned teachers receive a short-lived meeting token only during the join window; parents cannot request a token.
+- Rooms are limited to five participants. Teachers are room owners and may share their screen; student screen sharing, chat, recording, and transcription are disabled initially.
+- The classroom opens 15 minutes before the lesson and closes 30 minutes afterward. Daily's pre-join interface handles camera and microphone checks.
+- The API key is read only from the server-side `DAILY_API_KEY` variable. The browser receives a room URL and short-lived participant token after CodeLah rechecks the session and lesson access.
+- Source migration: `202609240002_live_classrooms.sql`. It passed local PostgreSQL policy tests but remains pending on the shared Supabase project because the Supabase OAuth authorization window expired before approval.
 
 ### Intended experience
 
@@ -159,7 +168,7 @@ No provider account, paid plan, or integration has been created. Final selection
 
 Create one private room per lesson session. Keep provider credentials on the server. Store a provider room reference against the lesson, so materials and feedback retain their own lesson identity. A room URL alone must not grant access.
 
-Proposed initial controls: teacher moderation, a join window, teacher-led start, and screen-sharing permissions. A camera/microphone prejoin check is different from a teacher-admission lobby; explicitly implement and test whichever joining policy we select. Never assume that giving a student a valid token also makes them wait for the teacher.
+Initial controls give the teacher room ownership and screen sharing, give students camera and microphone access without screen sharing, and restrict tokens to the lesson join window. Daily's pre-join check is enabled, while knocking and a teacher-admission lobby are disabled. Students can therefore enter during the join window before the teacher; change this deliberately if the pilot requires teacher admission.
 
 Join/leave events may suggest attendance later, but the teacher should be able to review and correct the record. Event handling must tolerate reconnection and duplicate delivery before being used operationally.
 
@@ -174,13 +183,13 @@ Recording is proposed to be off initially. If recordings are requested, agree on
 - Materials remain accessible when the call ends or the connection drops.
 - Verify quality from Singapore and estimate cost using expected class size, duration, and monthly lesson count.
 
-### Decisions to settle before integration
+### Decisions to settle before the pilot
 
 - Number of simultaneous classes and monthly lesson count; class size and duration are confirmed above.
 - Supported devices; laptops/desktops are the proposed primary teaching devices.
-- Whether students may screen share, whether live chat is needed, and whether parents may join.
-- Whether recording is needed at launch.
-- Provider selection and budget after a small trial.
+- Whether the initial no-chat and teacher-only screen-sharing settings should change.
+- Whether the pilot needs a teacher-admission lobby.
+- Daily budget after measuring a full five-person trial and expected monthly lesson count.
 
 ### Provider references
 
@@ -448,3 +457,11 @@ Roles must not come from a role selector or editable signup metadata. New identi
 - Accepted PDFs, common images and Office documents, ZIP and Scratch projects, and common source-code files up to 10 MB. Active web source is served as plain text, SVG and executable files are rejected, and downloads use ten-minute signed URLs with attachment filenames.
 - Added access tests for linked-family visibility, classmate isolation, forged storage paths, and immediate revocation. Added file-validation tests and lesson-page upload, download, and removal controls.
 - Applied `202609240001_lesson_files.sql` to the selected Supabase project as migration `20260924132430 lesson_files`. Verification confirmed the bucket is private, has the 10 MB server-side limit and MIME allowlist, and all six metadata/storage policies exist. Apply the source migration after the earlier account and teaching-workflow migrations when preparing another project.
+
+### 2026-09-28 — Phase 3 verification and Phase 4 classroom foundation
+
+- Expanded the authenticated teaching-cycle browser test to upload a real teacher worksheet and student source file, then check teacher and linked-parent visibility and storage cleanup.
+- The browser run stopped at its first boundary because the saved administrator session had expired. An isolated login window was left open for one hour and received no sign-in, so the multi-role run remains pending without storing administrator credentials.
+- Selected Daily Prebuilt for the initial classroom. Added private room creation, server-generated meeting tokens, a 15-minute early join window, a 30-minute closing allowance, a five-person cap, teacher ownership and screen sharing, and an embedded pre-join classroom page.
+- Added local PostgreSQL tests for room visibility and teacher-only room management, plus unit tests for room timing and teacher/student permissions. All 39 automated tests, TypeScript checks, application lint, and the production build pass. Real video cannot be exercised until a Daily API key is supplied.
+- Supabase OAuth also expired before the new room-table migration could be applied. Existing lesson pages handle the missing table safely; Phase 3 file and lesson features remain usable while this external setup is pending.

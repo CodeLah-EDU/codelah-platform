@@ -68,6 +68,15 @@ before(async () => {
       'utf8',
     ),
   );
+  await db.exec(
+    await readFile(
+      new URL(
+        '../../supabase/migrations/202609240002_live_classrooms.sql',
+        import.meta.url,
+      ),
+      'utf8',
+    ),
+  );
   for (const [n, role] of [
     [1, 'admin'],
     [2, 'parent'],
@@ -492,6 +501,7 @@ test('revoked and suspended family members lose all lesson access', async () => 
           'lesson_submissions',
           'lesson_feedback',
           'lesson_reports',
+          'lesson_video_rooms',
         ])
           assert.equal((await visible(table)).length, 0, table);
       },
@@ -514,6 +524,28 @@ test('unrelated teachers and students cannot create feedback or attendance for o
       db.query(
         "insert into lesson_attendance(lesson_id,student_id,status,updated_by) values ($1,$2,'present',$3)",
         [id(30), id(7), id(4)],
+      ),
+    ),
+    /row-level security/,
+  );
+});
+test('private classroom room records follow lesson access and teacher management', async () => {
+  const setup = `insert into lesson_video_rooms(lesson_id,room_name,room_url,created_by)
+    values ('${id(30)}','codelah-${id(30).replaceAll('-', '')}','https://codelah.daily.co/lesson','${id(4)}');`;
+  for (const actor of [2, 4, 6])
+    await learningRecords(actor, async () => {
+      assert.equal((await visible('lesson_video_rooms')).length, 1);
+    }, setup);
+  for (const actor of [5, 7])
+    await learningRecords(actor, async () => {
+      assert.equal((await visible('lesson_video_rooms')).length, 0);
+    }, setup);
+  await assert.rejects(
+    as(6, () =>
+      db.query(
+        `insert into lesson_video_rooms(lesson_id,room_name,room_url,created_by)
+         values ($1,$2,'https://codelah.daily.co/forged',$3)`,
+        [id(30), `codelah-${id(30).replaceAll('-', '')}`, id(6)],
       ),
     ),
     /row-level security/,

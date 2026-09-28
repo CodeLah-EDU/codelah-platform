@@ -1198,6 +1198,13 @@ h3 {
 .file-upload-form { margin-top: 16px; max-width: 620px; }
 .file-upload-form input[type='file'] { padding: 10px; background: #fff; }
 .file-upload-form .muted { margin-top: -4px; font-size: 0.875rem; }
+.live-class-panel .button { display: inline-flex; margin-top: 8px; }
+.classroom-page { max-width: 1280px; }
+.classroom-stage { margin-top: 28px; }
+.classroom-entry { max-width: 660px; margin-bottom: 18px; }
+.classroom-entry .notice { margin-top: 16px; }
+.daily-frame { width: 100%; height: min(72vh,760px); min-height: 540px; overflow: hidden; border: 1px solid var(--line); border-radius: 16px; background: #202e26; }
+.daily-frame.empty { height: 0; min-height: 0; border: 0; }
 .preserve-lines { white-space: pre-wrap; overflow-wrap: anywhere; }
 .family-report { padding: 20px 0; }
 .family-report + .family-report { border-top: 1px solid var(--line); }
@@ -1205,7 +1212,7 @@ h3 {
 .account-form fieldset { display: grid; gap: 18px; min-width: 0; padding: 0; margin: 0; border: 0; }
 .account-form fieldset:disabled { opacity: .65; }
 .account-form textarea { resize: vertical; min-height: 80px; width: 100%; font: inherit; line-height: 1.6; padding: 12px; border: 1px solid #9aaa92; border-radius: 8px; background: white; }
-@media(max-width:800px) { .lesson-roster {grid-template-columns:1fr;} .lesson-workspace h1 {overflow-wrap:anywhere;} .form-actions {flex-wrap:wrap;} .lesson-file-list > li {align-items:flex-start;} }
+@media(max-width:800px) { .lesson-roster {grid-template-columns:1fr;} .lesson-workspace h1 {overflow-wrap:anywhere;} .form-actions {flex-wrap:wrap;} .lesson-file-list > li {align-items:flex-start;} .daily-frame {min-height:480px;height:70vh;} }
 
 .teaching-week {
   margin-top: 28px;

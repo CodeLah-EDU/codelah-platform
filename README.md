@@ -6,6 +6,8 @@ CodeLah is a coding tuition platform for four-student classes in Singapore. Deve
 
 Phase 3 now has a weekly dashboard, saved lesson schedule, private worksheet and project files, text submissions, attendance, and published family reports at `/dashboard/lessons`. Phase 2 live sign-in, relationship, password reset, and revocation checks are underway; the founder confirmed delivery of a recovery email. The Phase 1 fictional dashboard remains at `/demo`.
 
+Phase 4 has started with a Daily Prebuilt integration behind server-side configuration. The source includes private room preparation, short-lived per-user joining credentials, a five-person limit, teacher screen sharing, and the embedded classroom page. A Daily API key and the pending live-classroom Supabase migration are required before real calls can start.
+
 ## Run locally
 
 Use Node.js 22.13 or newer (verified with 22.21.0).
@@ -60,7 +62,8 @@ The PostgreSQL tests use PGlite locally and apply the actual migrations. They do
 - `web/tests/`: database permissions and application tests.
 - `web/e2e/`: Playwright browser checks.
 - `web/.openai/hosting.json`: existing private Phase 1 Sites preview configuration.
+- `DAILY_API_KEY`: optional server-only Daily credential for the Phase 4 classroom; keep it in `.env.local` and never commit it.
 
-The app uses React, TypeScript, and Vinext. Live video and payments remain later phases. Phase 3 worksheet links, text responses, and private files use the connected Supabase project; uploaded files are limited to 10 MB and downloads use short-lived signed links. The existing Sites preview remains Phase 1; the account and lesson workflows currently run locally and require separate hosting configuration before external use.
+The app uses React, TypeScript, and Vinext. Phase 4 live video is implemented behind provider configuration, while payments remain a later phase. Phase 3 worksheet links, text responses, and private files use the connected Supabase project; uploaded files are limited to 10 MB and downloads use short-lived signed links. The existing Sites preview remains Phase 1; the account, lesson, and classroom workflows currently run locally and require separate hosting configuration before external use.
 
 `npm run lint` additionally checks the unused starter catalog and reports 19 existing errors there. Application lint checks CodeLah code. Dependency advisories and pre-pilot hardening are tracked in the project documentation.

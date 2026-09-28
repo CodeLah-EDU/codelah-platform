@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { currentAccount } from "@/lib/supabase/access";
 import { isId, lessonDate, lessonTime, resourceLink } from "@/lib/lessons";
 import { fileSize, LESSON_FILE_ACCEPT, LESSON_FILE_BUCKET } from "@/lib/lesson-files";
+import { dailyConfigured } from "@/lib/daily";
 import { SaveForm } from "@/components/lessons/save-form";
 
 type Person = { id: string; display_name: string; role: string };
@@ -129,6 +130,7 @@ export default async function LessonDetail({
     rosterResult,
     classResult,
     filesResult,
+    videoRoomResult,
   ] = await Promise.all([
     client
       .from("lesson_materials")
@@ -161,6 +163,7 @@ export default async function LessonDetail({
       .select("id,kind,student_id,storage_path,file_name,size_bytes,created_at")
       .eq("lesson_id", id)
       .order("created_at"),
+    client.from("lesson_video_rooms").select("lesson_id").eq("lesson_id", id).maybeSingle(),
   ]);
   const studentIds = (rosterResult.data ?? []).map((row) => row.student_id);
   const peopleResult = studentIds.length
@@ -251,6 +254,36 @@ export default async function LessonDetail({
               </SaveForm>
             </details>
           )}
+          <section className="panel live-class-panel">
+            <p className="eyebrow">LIVE CLASSROOM</p>
+            <h2>Video lesson</h2>
+            {videoRoomResult.error ? (
+              <p className="muted">Live classroom setup is being prepared.</p>
+            ) : videoRoomResult.data ? (
+              account?.role === "parent" ? (
+                <p className="muted">The live classroom is available to the enrolled student and teacher.</p>
+              ) : (
+                <>
+                  <p>Private classroom ready for one teacher and up to four students.</p>
+                  <Link className="button primary" href={`/dashboard/lessons/${id}/classroom`}>
+                    Open classroom
+                  </Link>
+                </>
+              )
+            ) : teacher ? (
+              dailyConfigured() ? (
+                <SaveForm action="/dashboard/lessons/classroom/prepare">
+                  <Fields lessonId={id} action="prepare" />
+                  <p className="muted">Creates a private Daily room for this scheduled lesson.</p>
+                  <button className="button primary">Prepare live classroom</button>
+                </SaveForm>
+              ) : (
+                <p className="muted">Add the server-only Daily API key to prepare this classroom.</p>
+              )
+            ) : (
+              <p className="muted">Your teacher has not prepared the live classroom yet.</p>
+            )}
+          </section>
           <section className="panel">
             <h2>Worksheets & materials</h2>
             {materials.length ? (
