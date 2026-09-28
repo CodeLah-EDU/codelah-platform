@@ -59,7 +59,7 @@ The reference site describes ages 10–17. The platform's exact age eligibility 
 | 1 — Dashboard prototype | Review the student, teacher, and parent experience with fictional sample lessons. | Founder approved moving to Phase 2; browser verification remains outstanding |
 | 2 — Accounts and access | Real authentication, parent–child links, teacher assignments, and enforced permissions. | Implemented locally; administrator activation confirmed, remaining authenticated checks pending |
 | 3 — Teaching workflow | Persistent schedules, worksheets, submissions, attendance, and teacher feedback. | In progress — lesson records and scheduling slice implemented |
-| 4 — Live classroom | Embedded video and screen sharing linked to scheduled lessons. | In progress — Daily foundation implemented; provider account connection pending |
+| 4 — Live classroom | Embedded video and screen sharing linked to scheduled lessons. | In progress — Daily connection verified; live classroom trial pending |
 | 5 — Payments and pilot | SGD billing, receipts, and a small operational pilot. | Proposed |
 
 Review each phase together before expanding scope. The founder can revise the order. Phase completion requires a working demonstration and appropriate verification, with remaining limitations recorded here.
@@ -132,7 +132,7 @@ Proposed review interaction: edit attendance and a weekly note in the teacher vi
 
 Embed **Daily Prebuilt** inside the CodeLah lesson page for the first classroom version. It supplies the camera/microphone pre-join screen, five-person call UI, and teacher screen sharing while CodeLah retains scheduling and access control. LiveKit remains an option if a deeply customised video layout becomes central later.
 
-The provider integration is implemented behind configuration, but no Daily account, API key, room, or paid plan has been created. Activation still requires a Daily API key and a full trial using the expected class size, teacher device, student devices, and Singapore network conditions.
+The provider integration is implemented and the locally configured Daily credential authenticates successfully. No classroom has been created through CodeLah yet. Activation still requires a full trial using the expected class size, teacher device, student devices, and Singapore network conditions.
 
 ### Phase 4 foundation implemented
 
@@ -463,5 +463,6 @@ Roles must not come from a role selector or editable signup metadata. New identi
 - Expanded the authenticated teaching-cycle browser test to upload a real teacher worksheet and student source file, then check teacher and linked-parent visibility and storage cleanup.
 - The browser run stopped at its first boundary because the saved administrator session had expired. An isolated login window was left open for one hour and received no sign-in, so the multi-role run remains pending without storing administrator credentials.
 - Selected Daily Prebuilt for the initial classroom. Added private room creation, server-generated meeting tokens, a 15-minute early join window, a 30-minute closing allowance, a five-person cap, teacher ownership and screen sharing, and an embedded pre-join classroom page.
-- Added local PostgreSQL tests for room visibility and teacher-only room management, plus unit tests for room timing and teacher/student permissions. All 39 automated tests, TypeScript checks, application lint, and the production build pass. Real video cannot be exercised until a Daily API key is supplied.
-- Reauthorized the Supabase connection and applied `202609240002_live_classrooms.sql` to the shared project as migration `20260928130920 live_classrooms`. Remote verification confirmed row-level security, the three read/insert/delete policies, and the room-name validation trigger. The Daily API key and real video trial remain pending.
+- Added local PostgreSQL tests for room visibility and teacher-only room management, plus unit tests for room timing and teacher/student permissions. All 39 automated tests, TypeScript checks, application lint, and the production build pass.
+- Reauthorized the Supabase connection and applied `202609240002_live_classrooms.sql` to the shared project as migration `20260928130920 live_classrooms`. Remote verification confirmed row-level security, the three read/insert/delete policies, and the room-name validation trigger.
+- Added the Daily credential to the ignored local environment file, verified it against Daily without exposing it, and restarted CodeLah with the provider configuration loaded. Creating the first private room and running the real multi-user call remain pending until an administrator signs in.
