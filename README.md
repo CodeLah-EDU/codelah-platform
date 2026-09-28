@@ -6,7 +6,7 @@ CodeLah is a coding tuition platform for four-student classes in Singapore. Deve
 
 Phase 3 now has a weekly dashboard, saved lesson schedule, private worksheet and project files, text submissions, attendance, and published family reports at `/dashboard/lessons`. Phase 2 live sign-in, relationship, password reset, and revocation checks are underway; the founder confirmed delivery of a recovery email. The Phase 1 fictional dashboard remains at `/demo`.
 
-Phase 4 has started with a Daily Prebuilt integration behind server-side configuration. The source includes private room preparation, short-lived per-user joining credentials, a five-person limit, teacher screen sharing, and the embedded classroom page. A Daily API key and the pending live-classroom Supabase migration are required before real calls can start.
+Phase 4 has started with a Daily Prebuilt integration behind server-side configuration. The source includes private room preparation, short-lived per-user joining credentials, a five-person limit, teacher screen sharing, and the embedded classroom page. The live-classroom Supabase migration is applied; a Daily API key is still required before real calls can start.
 
 ## Run locally
 

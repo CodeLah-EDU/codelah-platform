@@ -141,7 +141,7 @@ The provider integration is implemented behind configuration, but no Daily accou
 - Rooms are limited to five participants. Teachers are room owners and may share their screen; student screen sharing, chat, recording, and transcription are disabled initially.
 - The classroom opens 15 minutes before the lesson and closes 30 minutes afterward. Daily's pre-join interface handles camera and microphone checks.
 - The API key is read only from the server-side `DAILY_API_KEY` variable. The browser receives a room URL and short-lived participant token after CodeLah rechecks the session and lesson access.
-- Source migration: `202609240002_live_classrooms.sql`. It passed local PostgreSQL policy tests but remains pending on the shared Supabase project because the Supabase OAuth authorization window expired before approval.
+- Source migration: `202609240002_live_classrooms.sql`. It passed local PostgreSQL policy tests and is applied to the shared Supabase project as migration `20260928130920 live_classrooms`.
 
 ### Intended experience
 
@@ -464,4 +464,4 @@ Roles must not come from a role selector or editable signup metadata. New identi
 - The browser run stopped at its first boundary because the saved administrator session had expired. An isolated login window was left open for one hour and received no sign-in, so the multi-role run remains pending without storing administrator credentials.
 - Selected Daily Prebuilt for the initial classroom. Added private room creation, server-generated meeting tokens, a 15-minute early join window, a 30-minute closing allowance, a five-person cap, teacher ownership and screen sharing, and an embedded pre-join classroom page.
 - Added local PostgreSQL tests for room visibility and teacher-only room management, plus unit tests for room timing and teacher/student permissions. All 39 automated tests, TypeScript checks, application lint, and the production build pass. Real video cannot be exercised until a Daily API key is supplied.
-- Supabase OAuth also expired before the new room-table migration could be applied. Existing lesson pages handle the missing table safely; Phase 3 file and lesson features remain usable while this external setup is pending.
+- Reauthorized the Supabase connection and applied `202609240002_live_classrooms.sql` to the shared project as migration `20260928130920 live_classrooms`. Remote verification confirmed row-level security, the three read/insert/delete policies, and the room-name validation trigger. The Daily API key and real video trial remain pending.
