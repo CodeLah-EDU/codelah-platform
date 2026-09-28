@@ -1,6 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { lessonTimes, resourceLink } from '../lib/lessons.ts';
+import {
+  lessonTimes,
+  resourceLink,
+  scheduledLessonTimes,
+} from '../lib/lessons.ts';
 test('Singapore lesson times preserve day boundaries and the agreed duration', () => {
   assert.deepEqual(lessonTimes('2026-10-01T00:30', '2026-10-01T02:00'), {
     starts_at: '2026-09-30T16:30:00.000Z',
@@ -27,4 +31,18 @@ test('worksheet links reject executable URLs and embedded credentials', () => {
     'file:///tmp/test',
   ])
     assert.throws(() => resourceLink(value));
+});
+test('scheduled lessons require a future start time', () => {
+  const now = Date.parse('2026-10-01T10:00:00+08:00');
+  assert.throws(
+    () => scheduledLessonTimes('2026-10-01T09:00', '2026-10-01T10:30', now),
+    /future lesson start time/,
+  );
+  assert.deepEqual(
+    scheduledLessonTimes('2026-10-01T10:30', '2026-10-01T12:00', now),
+    {
+      starts_at: '2026-10-01T02:30:00.000Z',
+      ends_at: '2026-10-01T04:00:00.000Z',
+    },
+  );
 });

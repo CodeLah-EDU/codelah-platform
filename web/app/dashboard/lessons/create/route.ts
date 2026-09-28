@@ -1,5 +1,5 @@
 import { safeOrigin, formText } from "@/lib/accounts";
-import { isId, lessonTimes } from "@/lib/lessons";
+import { isId, scheduledLessonTimes } from "@/lib/lessons";
 import { supabaseServer } from "@/lib/supabase/server";
 export async function POST(request: Request) {
   const origin = safeOrigin(request);
@@ -12,7 +12,7 @@ export async function POST(request: Request) {
       objective = formText(form, "objective").trim();
     if (!isId(classroom_id) || !title || title.length > 160 || objective.length > 2000)
       return fail();
-    const times = lessonTimes(formText(form, "starts_at"), formText(form, "ends_at"));
+    const times = scheduledLessonTimes(formText(form, "starts_at"), formText(form, "ends_at"));
     const client = await supabaseServer();
     const {
       data: { user },

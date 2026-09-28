@@ -2,6 +2,7 @@ import Link from "next/link";
 import { SaveForm } from "@/components/lessons/save-form";
 import { redirect } from "next/navigation";
 import { currentAccount } from "@/lib/supabase/access";
+import { requestTimestamp } from "@/lib/lessons";
 
 export default async function NewLesson() {
   const { client, account } = await currentAccount();
@@ -11,6 +12,7 @@ export default async function NewLesson() {
     .select("id,name")
     .eq("active", true)
     .order("name");
+  const minimumStart = new Date(requestTimestamp() + 8 * 3600000).toISOString().slice(0, 16);
   return (
     <main id="main" className="account-shell">
       <header className="account-header">
@@ -31,7 +33,11 @@ export default async function NewLesson() {
           No active class is assigned yet. Ask your administrator to connect your class.
         </p>
       ) : (
-        <SaveForm className="panel account-form lesson-form" action="/dashboard/lessons/create">
+        <SaveForm
+          className="panel account-form lesson-form"
+          action="/dashboard/lessons/create"
+          validation="lesson-schedule"
+        >
           <label>
             Class
             <select name="classroom_id" required>
@@ -59,11 +65,11 @@ export default async function NewLesson() {
           <div className="lesson-form-grid">
             <label>
               Starts
-              <input type="datetime-local" name="starts_at" required />
+              <input type="datetime-local" name="starts_at" min={minimumStart} required />
             </label>
             <label>
               Ends
-              <input type="datetime-local" name="ends_at" required />
+              <input type="datetime-local" name="ends_at" min={minimumStart} required />
             </label>
           </div>
           <p className="muted">Enter Singapore time (SGT). Each lesson must last 90–120 minutes.</p>

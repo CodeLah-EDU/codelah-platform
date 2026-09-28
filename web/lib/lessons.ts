@@ -34,6 +34,16 @@ export function lessonTimes(start: string, end: string) {
     throw new Error('Lessons must last 90–120 minutes.');
   return { starts_at: starts.toISOString(), ends_at: ends.toISOString() };
 }
+export function scheduledLessonTimes(
+  start: string,
+  end: string,
+  now = Date.now(),
+) {
+  const times = lessonTimes(start, end);
+  if (new Date(times.starts_at).valueOf() <= now)
+    throw new Error('Choose a future lesson start time.');
+  return times;
+}
 export function lessonDate(value: string) {
   return new Intl.DateTimeFormat('en-SG', {
     timeZone: 'Asia/Singapore',
