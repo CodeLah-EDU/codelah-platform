@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 180" fill="none">
+  <!-- Leaf and stem geometry from src/components/brand/greenery.tsx. -->
+  <defs><path id="leaf" d="M0 0C-18-2-21-19-13-30C2-26 12-12 0 0Z"/></defs>
+  <path d="M24-8C14 24 66 34 46 72S41 126 66 164M97-6C116 22 77 37 91 67S113 96 95 129" stroke="#8daa68" stroke-width="2.5"/>
+  <g fill="#52734b">
+    <use href="#leaf" transform="translate(26 16) rotate(-55)"/>
+    <use href="#leaf" transform="translate(43 76) rotate(65) scale(.85)"/>
+    <use href="#leaf" transform="translate(58 143) rotate(-40) scale(.65)"/>
+    <use href="#leaf" transform="translate(94 40) rotate(-60) scale(.9)"/>
+  </g>
+  <g fill="#8daa68">
+    <use href="#leaf" transform="translate(39 32) rotate(55) scale(.9)"/>
+    <use href="#leaf" transform="translate(41 99) rotate(-58) scale(.9)"/>
+    <use href="#leaf" transform="translate(103 17) rotate(58) scale(.8)"/>
+    <use href="#leaf" transform="translate(101 84) rotate(-50) scale(.8)"/>
+  </g>
+  <g fill="#365940">
+    <use href="#leaf" transform="translate(51 53) rotate(-65)"/>
+    <use href="#leaf" transform="translate(47 120) rotate(62) scale(.75)"/>
+    <use href="#leaf" transform="translate(92 63) rotate(56) scale(.75)"/>
+    <use href="#leaf" transform="translate(103 106) rotate(57) scale(.65)"/>
+  </g>
+</svg>

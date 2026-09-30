@@ -137,22 +137,13 @@ test('administrator creates a class, links a parent, assigns a teacher, and veri
       .getByRole('navigation', { name: 'Administration', exact: true })
       .getByRole('link', { name: 'Classes', exact: true })
       .click();
-    await page
-      .getByRole('link', { name: '+ Create class', exact: true })
-      .click();
+    await page.getByRole('link', { name: 'Create class', exact: true }).click();
     await expect(page.getByLabel('Student name', { exact: true })).toHaveCount(
       0,
     );
     await page.getByLabel('Class name', { exact: true }).fill(className);
     await page
       .getByRole('button', { name: 'Create class', exact: true })
-      .click();
-    await expect(page).toHaveURL(/\/admin\/classes\?message=saved$/);
-    const classCard = page.locator('section.panel').filter({
-      has: page.getByRole('heading', { name: className, exact: true }),
-    });
-    await classCard
-      .getByRole('link', { name: 'Manage class →', exact: true })
       .click();
     await expect(page).toHaveURL(/\/admin\/classes\/[0-9a-f-]{36}$/);
     await expect(
@@ -165,25 +156,30 @@ test('administrator creates a class, links a parent, assigns a teacher, and veri
     await page
       .getByRole('button', { name: 'Enrol student', exact: true })
       .click();
-    await expect(page).toHaveURL(
-      new RegExp(`/admin/classes/${classId}\\?message=saved$`),
-    );
-    await expect(page.getByText(student.name, { exact: true })).toBeVisible();
+    await expect(
+      page.getByRole('link', { name: student.name, exact: true }),
+    ).toBeVisible();
     await page
       .getByRole('combobox', { name: 'Assign a teacher', exact: true })
       .selectOption(teacher.id);
     await page
       .getByRole('button', { name: 'Assign teacher', exact: true })
       .click();
-    await expect(page.getByText(teacher.name, { exact: true })).toBeVisible();
-    // Parent contact information starts empty, then reflects the real link.
-    await page.goto('/admin/students');
-    const studentCard = page.locator(`#student-${student.id}`);
     await expect(
-      studentCard.getByText('No parent linked.', { exact: false }),
+      page.getByRole('link', { name: teacher.name, exact: true }),
+    ).toBeVisible();
+    // Parent contact information starts empty, then reflects the real link.
+    await page.goto(`/admin/accounts/${student.id}`);
+    const studentCard = page
+      .locator('.ops-panel')
+      .filter({
+        has: page.getByRole('heading', { name: 'Linked parents', exact: true }),
+      });
+    await expect(
+      studentCard.getByText('No family links yet', { exact: true }),
     ).toBeVisible();
     await studentCard
-      .getByRole('link', { name: 'Link a parent →', exact: true })
+      .getByRole('button', { name: 'Link', exact: true })
       .click();
     await expect(
       page.getByRole('combobox', { name: 'Student', exact: true }),
@@ -192,9 +188,11 @@ test('administrator creates a class, links a parent, assigns a teacher, and veri
       .getByRole('combobox', { name: 'Parent', exact: true })
       .selectOption(parent.id);
     await page
-      .getByRole('button', { name: 'Link parent to student', exact: true })
+      .getByRole('button', { name: 'Link parent and student', exact: true })
       .click();
-    await page.goto('/admin/students');
+    await expect(
+      page.getByRole('dialog', { name: 'Link a parent' }),
+    ).not.toBeVisible();
     await expect(
       studentCard.getByRole('link', { name: parent.name, exact: true }),
     ).toBeVisible();
@@ -212,16 +210,12 @@ test('administrator creates a class, links a parent, assigns a teacher, and veri
     await studentCard
       .getByRole('link', { name: parent.name, exact: true })
       .click();
-    await expect(page).toHaveURL(
-      new RegExp(`/admin/parents#parent-${parent.id}$`),
-    );
+    await expect(page).toHaveURL(new RegExp(`/admin/accounts/${parent.id}$`));
+    await page.goto('/admin/teachers');
     await page
-      .getByRole('navigation', { name: 'Administration', exact: true })
-      .getByRole('link', { name: 'Teachers', exact: true })
-      .click();
-    await expect(
-      page.getByRole('heading', { name: 'Teachers', exact: true }),
-    ).toBeVisible();
+      .getByRole('textbox', { name: 'Search accounts' })
+      .fill(teacher.name);
+    await page.getByRole('link', { name: teacher.name, exact: true }).click();
     await expect(
       page.getByRole('heading', { name: teacher.name, exact: true }),
     ).toBeVisible();
@@ -242,11 +236,10 @@ test('administrator creates a class, links a parent, assigns a teacher, and veri
     });
     await signIn.getByLabel('Username', { exact: true }).fill(student.username);
     await signIn.getByLabel('Password', { exact: true }).fill(password);
-    await signIn.getByRole('button').click();
-    await expect(studentPage).toHaveURL(/\/dashboard$/);
-    await expect(
-      studentPage.getByText(className, { exact: true }),
-    ).toBeVisible();
+    await signIn
+      .getByRole('button', { name: 'Student sign in', exact: true })
+      .click();
+    await expect(studentPage).toHaveURL(/\/dashboard\/home$/);
     await expect(
       studentPage.getByRole('navigation', {
         name: 'Administration',
@@ -254,7 +247,7 @@ test('administrator creates a class, links a parent, assigns a teacher, and veri
       }),
     ).toHaveCount(0);
     await studentPage.goto(`${origin}/admin/teachers`);
-    await expect(studentPage).toHaveURL(/\/dashboard$/);
+    await expect(studentPage).toHaveURL(/\/dashboard\/home$/);
     // Real parent/teacher JWTs and direct database calls exercise RLS separately
     // from UI visibility. These fixtures do not test email signup or delivery.
     const parentClient = createClient(url, key, {
@@ -275,29 +268,36 @@ test('administrator creates a class, links a parent, assigns a teacher, and veri
       const visible = await client.from('accounts').select('id');
       expect(visible.error).toBeNull();
       expect(visible.data?.map((p) => p.id).sort()).toEqual(
-        [fixture.id, student.id].sort(),
+        (fixture.role === 'teacher'
+          ? [fixture.id, student.id, parent.id]
+          : [fixture.id, student.id]
+        ).sort(),
       );
     }
-    // End enrolment in the admin UI; a student refresh must remove the class.
+    // End enrolment in the admin UI, then verify relationship access revocation.
     await page.goto(`/admin/classes/${classId}`);
+    page.once('dialog', (dialog) => dialog.accept());
     await page
+      .locator('li')
+      .filter({
+        has: page.getByRole('link', { name: student.name, exact: true }),
+      })
       .getByRole('button', {
-        name: `End enrolment for ${student.name}`,
+        name: 'End enrolment',
         exact: true,
       })
       .click();
-    await studentPage.reload();
-    await expect(studentPage.getByText(className, { exact: true })).toHaveCount(
-      0,
-    );
+    await expect(
+      page.getByRole('link', { name: student.name, exact: true }),
+    ).toHaveCount(0);
     await page.goto('/admin/relationships');
-    const family = page.locator('li').filter({
-      has: page.getByRole('heading', { name: parent.name, exact: true }),
+    const family = page.locator('tr').filter({
+      has: page.getByRole('link', { name: parent.name, exact: true }),
     });
-    await family
-      .getByRole('button', { name: 'Revoke access', exact: true })
-      .click();
-    await page.goto('/admin/students');
+    page.once('dialog', (dialog) => dialog.accept());
+    await family.getByRole('button', { name: 'Unlink', exact: true }).click();
+    await expect(family).toHaveCount(0);
+    await page.goto(`/admin/accounts/${student.id}`);
     await expect(
       studentCard.getByRole('link', { name: parent.name, exact: true }),
     ).toHaveCount(0);
@@ -312,7 +312,7 @@ test('administrator creates a class, links a parent, assigns a teacher, and veri
       .eq('id', student.id);
     expect(teacherDenied.data).toEqual([]);
     await expect(
-      page.getByRole('heading', { name: 'Students', exact: true }),
+      page.getByRole('heading', { name: student.name, exact: true }),
     ).toBeVisible();
     // Both desktop and mobile authenticated layouts are exercised.
     await page.screenshot({

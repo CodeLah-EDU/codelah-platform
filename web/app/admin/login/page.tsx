@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { configured } from '@/lib/supabase/server';
+import { TypewriterLogo } from '@/components/brand/typewriter-logo';
 export default async function AdminLogin({
   searchParams,
 }: {
@@ -10,17 +11,21 @@ export default async function AdminLogin({
   return (
     <main id="main" className="admin-login">
       <div className="admin-login-brand">
-        <Link className="wordmark" href="/login">
-          CodeLah<span>_</span>
+        <Link
+          className="admin-login-logo"
+          href="/login"
+          aria-label="Codelah home"
+        >
+          <TypewriterLogo />
         </Link>
         <div>
           <p className="eyebrow">ADMINISTRATION</p>
           <h1>
-            Your teaching community,
+            Your studio,
             <br />
-            in one place.
+            running smoothly.
           </h1>
-          <p>Student accounts. Family connections. Classes ready to teach.</p>
+          <p>Finances, attendance, and your teaching community in one place.</p>
         </div>
         <span className="account-meta">CODELAH · ADMIN WORKSPACE</span>
       </div>
@@ -72,7 +77,12 @@ export default async function AdminLogin({
         </form>
         <Link href="/login#recovery">Forgot your password?</Link>
         <div className="admin-login-divider" />
-        <Link href="/login">← Student, parent & teacher sign in</Link>
+        <div className="admin-login-links">
+          <Link className="button" href="/preview/admin">
+            Try the administrator demo →
+          </Link>
+          <Link href="/login">← Student, parent & teacher sign in</Link>
+        </div>
       </div>
     </main>
   );

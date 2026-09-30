@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="200 230 600 500" fill="#192920">
+  <title>Codelah robot</title>
+  <!-- Open-eyed geometry from src/components/brand/loading-robot.tsx. -->
+  <path d="M483 328h34v67h-34z"/>
+  <circle cx="500" cy="293" r="42"/>
+  <rect x="306" y="393" width="388" height="282" rx="73" fill="none" stroke="#192920" stroke-width="44"/>
+  <path d="M270 476h-14c-20 0-34 15-34 35v55c0 20 14 34 34 34h14zM730 476h14c20 0 34 15 34 35v55c0 20-14 34-34 34h-14z"/>
+  <path d="M473 575Q500 597 527 575" fill="none" stroke="#192920" stroke-width="28" stroke-linecap="round"/>
+  <circle cx="403" cy="533" r="35"/>
+  <circle cx="597" cy="533" r="35"/>
+</svg>

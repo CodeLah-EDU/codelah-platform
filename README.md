@@ -4,6 +4,10 @@ CodeLah is a coding tuition platform for four-student classes in Singapore. Deve
 
 ## Current phase
 
+The `feat/learning-workspace-overhaul` branch adds a plant-themed sign-in gateway and dedicated student, teacher, and parent workspaces, with a worksheet library, course objectives, calendars, per-lesson rosters/files/comments, family timelines, and manual payment records. See [workspace implementation and rollout notes](docs/workspace-overhaul.md).
+
+Administration has also been redesigned around student fees, business expenses, monthly cash profit, attendance, account creation, family connections, and class management. See [administrator implementation and rollout notes](docs/admin-overhaul.md). The two new database migrations are verified locally but have **not** been applied to the shared Supabase project. The **Try a demo** button at `/` opens the student, teacher, and parent previews. The administrator sign-in at `/admin/login` links to the read-only administrator preview at `/preview/admin`.
+
 Phase 3 now has a weekly dashboard, saved lesson schedule, private worksheet and project files, text submissions, attendance, and published family reports at `/dashboard/lessons`. Phase 2 live sign-in, relationship, password reset, and revocation checks are underway; the founder confirmed delivery of a recovery email. The Phase 1 fictional dashboard remains at `/demo`.
 
 Phase 4 has started with a Daily Prebuilt integration behind server-side configuration. The source includes private room preparation, short-lived per-user joining credentials, a five-person limit, teacher screen sharing, and the embedded classroom page. The live-classroom Supabase migration is applied; a Daily API key is still required before real calls can start.
@@ -20,7 +24,7 @@ npm ci
 npm run dev
 ```
 
-Open **http://localhost:3001/login**. To review the fictional prototype without an account, open **http://localhost:3001/demo**. Real student, parent, teacher, and administrator dashboards require an account in the shared development project.
+Open **http://localhost:3001/** for the platform sign-in page; `/login` provides the same experience. Choose Student, Parent, or Teacher, or use the Administrator link in the corner. **Try a demo** opens the fictional workspace previews without an account. Successful sign-in follows the verified account role. The earlier prototype remains at `/demo`.
 
 The committed `.env.example` contains only the Supabase project URL and publishable browser key. It does not contain a service-role key or password. Keep personal passwords and any future server secrets outside Git.
 
@@ -28,11 +32,11 @@ The committed `.env.example` contains only the Supabase project URL and publisha
 
 ### First account
 
-1. Open the login page and expand **First time here? Create an adult account**.
+1. Open the login page, select **Parent** or **Teacher**, and expand **First time here? Create an adult account**.
 2. Register the reserved administrator email and verify the email from Supabase. Choose your own password; do not share it in chat or source control.
 3. The private, one-use administrator reservation activates that verified account automatically.
 4. Administrators use `/admin` with a separate sidebar; `/admin/login` is the dedicated sign-in. Other adults start pending; assign their roles under **Account requests**. Assigned accounts appear on separate **Parents** and **Teachers** pages.
-5. Use **Students → Create student** for usernames/passwords. Use **Classes → Create class → Manage class** for enrolments and teacher assignments, and **Parent links** for families. Each student record shows linked parent contact details and a shortcut to manage those links. An authorised parent/teacher may reset their student's password.
+5. Use **Accounts → Create account** for student usernames/passwords or parent/teacher invitations. Adult invitations require the configuration in the administrator rollout notes. Use **Classes → Create class** for enrolments and teacher assignments, and **Family connections** for families. Each student record shows parent contact details, fees, and attendance. An authorised parent/teacher may still reset their student's password.
 
 The selected project has its first-admin reservation configured. A fresh project needs a deliberate privileged reservation after applying migrations; the repository does not grant admin based on user-editable metadata. Supabase email delivery/SMTP must work for adult signup and recovery.
 
@@ -56,7 +60,7 @@ The PostgreSQL tests use PGlite locally and apply the actual migrations. They do
 
 - `documentation.md`: decisions, progress, verification, and open acceptance items.
 - `supabase/migrations/`: versioned accounts, relationships, RLS, usernames, throttling, and initial-admin rules.
-- `supabase/functions/student-accounts/`: authenticated student creation/password management. Deploy with JWT verification enabled.
+- `supabase/functions/student-accounts/`: authenticated student creation/password management and administrator-only adult invitations. Deploy with JWT verification enabled.
 - `web/app/auth/`, `web/app/login/`, `web/app/dashboard/`: real account flows.
 - `web/app/demo/`, `web/lib/demo.ts`: fictional Phase 1 experience; refresh resets demo edits.
 - `web/tests/`: database permissions and application tests.

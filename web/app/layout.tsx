@@ -3,6 +3,10 @@ import '@fontsource-variable/dm-sans';
 import '@fontsource/ibm-plex-mono/400.css';
 import './globals.css';
 import './admin.css';
+import './workspace.css';
+import './landing.css';
+import './admin-console.css';
+import '@/components/brand/typewriter-animation.module.css';
 
 export const metadata: Metadata = {
   title: 'CodeLah · Learning studio',

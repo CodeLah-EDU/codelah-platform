@@ -1,0 +1,319 @@
+.animation {
+  width: 100%;
+  aspect-ratio: 1;
+  position: relative;
+  isolation: isolate;
+}
+
+.art {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+
+.tile {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 20%;
+  background: #192920;
+}
+
+.frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0;
+}
+
+.wordmarkSvg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.braceShape {
+  transform-origin: 0 0;
+  transform: translate(291px, 257px);
+}
+
+.lettering {
+  opacity: 0;
+}
+
+.sequence[data-ready='true'] .sequenceRobot,
+.sequence[data-ready='true'] .bracePair,
+.sequence[data-ready='true'] .braceShape,
+.sequence[data-ready='true'] .lettering {
+  animation-duration: 12s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  animation-fill-mode: both;
+  animation-iteration-count: infinite;
+}
+
+.sequence[data-ready='true'] .braceShape {
+  animation-name: extendBraces;
+}
+.sequence[data-ready='true'] .bracePair {
+  animation-name: fadeBraces;
+}
+.sequence[data-ready='true'] .initials {
+  animation-name: initials;
+}
+.sequence[data-ready='true'] .name {
+  animation-name: wordmark;
+}
+.sequenceRobot {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+}
+.sequenceRobot .frame4 {
+  opacity: 1;
+}
+.sequence[data-ready='true'] .sequenceRobot {
+  animation-name: awake;
+}
+.sequence[data-ready='true'] .frame5 {
+  animation: brandBlinks 12s ease-in-out infinite both;
+}
+
+/* One 12-second clock keeps forward motion, two blinks, and reverse in sync.
+   Each bracket move takes 853ms (the original 1280ms / 1.5).
+   Forward name: 2.667s. Robot: 4.107–7.4s. Return to braces: 11.08s. */
+@keyframes extendBraces {
+  0%,
+  3.555556%,
+  92.333333%,
+  100% {
+    transform: translate(291px, 257px);
+  }
+  10.666667%,
+  15.111111%,
+  80.777778%,
+  85.222222% {
+    transform: translate(133px, 257px);
+  }
+  22.222222%,
+  73.666667% {
+    transform: translate(85px, 257px);
+  }
+}
+@keyframes fadeBraces {
+  0%,
+  29.333333%,
+  66.555556%,
+  100% {
+    opacity: 1;
+  }
+  34.222222%,
+  61.666667% {
+    opacity: 0;
+  }
+}
+@keyframes initials {
+  0%,
+  6.222222%,
+  18.666667%,
+  77.222222%,
+  89.666667%,
+  100% {
+    opacity: 0;
+  }
+  10.666667%,
+  14.222222%,
+  80.777778%,
+  85.222222% {
+    opacity: 1;
+  }
+}
+@keyframes wordmark {
+  0%,
+  17.333333%,
+  34.222222%,
+  61.666667%,
+  78.555556%,
+  100% {
+    opacity: 0;
+  }
+  22.222222%,
+  29.333333%,
+  66.555556%,
+  73.666667% {
+    opacity: 1;
+  }
+}
+@keyframes awake {
+  0%,
+  29.333333%,
+  66.555556%,
+  100% {
+    opacity: 0;
+  }
+  34.222222%,
+  61.666667% {
+    opacity: 1;
+  }
+}
+
+/* Exactly two 96ms close / 64ms hold / 96ms open blinks, 1.6s apart. */
+@keyframes brandBlinks {
+  0%,
+  40.866667%,
+  43%,
+  54.2%,
+  56.333333%,
+  100% {
+    opacity: 0;
+  }
+  41.666667%,
+  42.2%,
+  55%,
+  55.533333% {
+    opacity: 1;
+  }
+}
+
+.loading .tile {
+  width: 86%;
+  background: transparent;
+  border-radius: 0;
+  overflow: visible;
+}
+
+.halos {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+}
+
+.halo {
+  position: absolute;
+  inset: 3%;
+  border-radius: 50%;
+  background: rgb(112 177 103 / 14%);
+  border: 1px solid rgb(112 177 103 / 10%);
+  opacity: 0;
+}
+
+.loading[data-ready='true'] .halo {
+  animation: pulse 3.2s cubic-bezier(0.2, 0.6, 0.35, 1) infinite;
+}
+.loading[data-ready='true'] .halo:nth-child(2) {
+  animation-delay: -1.0667s;
+}
+.loading[data-ready='true'] .halo:nth-child(3) {
+  animation-delay: -2.1333s;
+}
+
+.loading[data-ready='true'] .tile {
+  animation: breathe 3.2s ease-in-out infinite;
+}
+.robotSvg {
+  color: #192920;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.closedEyes {
+  opacity: 0;
+}
+.loading[data-ready='true'] .closedEyes {
+  animation: blink 1.6s ease-in-out infinite;
+}
+.loading[data-ready='true'] .openEyes {
+  animation: openEyes 1.6s ease-in-out infinite;
+}
+
+/* Only the eyes change; the head has no fill or background. */
+@keyframes openEyes {
+  0%,
+  44%,
+  60%,
+  100% {
+    opacity: 1;
+  }
+  50%,
+  54% {
+    opacity: 0;
+  }
+}
+
+@keyframes blink {
+  0%,
+  44%,
+  60%,
+  100% {
+    opacity: 0;
+  }
+  50%,
+  54% {
+    opacity: 1;
+  }
+}
+@keyframes breathe {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-3px) scale(1.025);
+  }
+}
+@keyframes pulse {
+  0% {
+    transform: scale(0.54);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+.animation[data-paused='true'] *,
+.animation[data-ready='false'] * {
+  animation-play-state: paused !important;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animation * {
+    animation: none !important;
+    transform: none !important;
+  }
+  .animation .frame {
+    opacity: 0;
+  }
+  .animation .wordmarkSvg {
+    display: none;
+  }
+  .animation .frame4 {
+    opacity: 1;
+  }
+  .animation .sequenceRobot {
+    opacity: 1;
+  }
+  .loading .halo:first-child {
+    opacity: 0.6;
+  }
+}

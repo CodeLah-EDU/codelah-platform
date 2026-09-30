@@ -1,6 +1,8 @@
 # CodeLah platform — project documentation
 
-Last updated: 2026-09-19
+Last updated: 2026-09-29
+
+The founder requested a full student/teacher/parent workspace overhaul on a new branch from `dev`, while retaining the admin interface. This supersedes the earlier phase-by-phase scope for this branch. Implementation, verification, design references, and hosted rollout requirements are recorded in [docs/workspace-overhaul.md](docs/workspace-overhaul.md). Local previews are available; the new Supabase migration is not yet applied to the shared project.
 
 ## 1. Purpose
 
@@ -457,6 +459,13 @@ Roles must not come from a role selector or editable signup metadata. New identi
 - Accepted PDFs, common images and Office documents, ZIP and Scratch projects, and common source-code files up to 10 MB. Active web source is served as plain text, SVG and executable files are rejected, and downloads use ten-minute signed URLs with attachment filenames.
 - Added access tests for linked-family visibility, classmate isolation, forged storage paths, and immediate revocation. Added file-validation tests and lesson-page upload, download, and removal controls.
 - Applied `202609240001_lesson_files.sql` to the selected Supabase project as migration `20260924132430 lesson_files`. Verification confirmed the bucket is private, has the 10 MB server-side limit and MIME allowlist, and all six metadata/storage policies exist. Apply the source migration after the earlier account and teaching-workflow migrations when preparing another project.
+
+### 2026-09-29 — administration overhaul
+
+- The founder expanded administration scope to student fees, business expenses, and profit overview, alongside attendance and account management. The earlier request to leave administrator pages unchanged is superseded.
+- Added the branded administration console, operational overview, cash-basis finance ledger and exports, append-only finance audit history, atomic lesson registers, searchable accounts and verified adult invitations, many-to-many family connections, four-place class management, and lesson scheduling/editing. Fictional previews are available at `/preview/admin`.
+- All 65 local application/database tests and 25 Chromium browser checks pass, as do TypeScript, application lint, and production build. Hosted data, invitations, and deployment were not changed. The two new migrations and invitation function/template configuration are still required for hosted acceptance.
+- Full implementation details and rollout steps: [Administrator overhaul](docs/admin-overhaul.md). Earlier student/teacher/parent and sign-in work is recorded in [Workspace overhaul](docs/workspace-overhaul.md).
 
 ### 2026-09-28 — Phase 3 verification and Phase 4 classroom foundation
 

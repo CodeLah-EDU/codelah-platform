@@ -1,4 +1,2 @@
-import { redirect } from 'next/navigation';
-export default function Page() {
-  redirect('/dashboard');
-}
+export { default, metadata } from '@/app/login/page';
+export const dynamic = 'force-dynamic';

@@ -1,9 +1,9 @@
-import { AdultDirectory } from '@/components/admin/adult-directory';
-export default async function Teachers({
+import { AdminPage } from '@/components/admin/page';
+import type { AdminSearch } from '@/components/admin/console-ui';
+export default async function Page({
   searchParams,
 }: {
-  searchParams: Promise<{ message?: string }>;
+  searchParams: Promise<AdminSearch>;
 }) {
-  const { message } = await searchParams;
-  return <AdultDirectory accountRole="teacher" message={message} />;
+  return <AdminPage path={['teachers']} search={await searchParams} />;
 }

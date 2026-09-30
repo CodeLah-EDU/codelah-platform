@@ -40,6 +40,7 @@ export default async function Dashboard({
     redirect(
       `/admin${message ? `?message=${encodeURIComponent(message)}` : ''}`,
     );
+  if (active) redirect('/dashboard/home');
   const results = active
     ? await Promise.all([
         client

@@ -3,6 +3,7 @@ import {
   classroomWindow,
   createDailyToken,
   dailyConfigured,
+  syncDailyRoom,
 } from '@/lib/daily';
 import { isId } from '@/lib/lessons';
 import { supabaseServer } from '@/lib/supabase/server';
@@ -58,6 +59,7 @@ export async function POST(request: Request) {
     if (window === 'closed') return failed('This classroom has closed.', 409);
 
     const owner = account.role === 'admin' || account.role === 'teacher';
+    await syncDailyRoom(lessonId, lesson.starts_at, lesson.ends_at);
     const token = await createDailyToken({
       roomName: room.room_name,
       userId: user.id,

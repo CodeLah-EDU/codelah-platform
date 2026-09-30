@@ -1,4 +1,11 @@
 const DAILY_API = 'https://api.daily.co/v1';
+class DailyRequestError extends Error {
+  status: number;
+  constructor(status: number) {
+    super(`Daily request failed (${status})`);
+    this.status = status;
+  }
+}
 export const CLASSROOM_EARLY_JOIN_SECONDS = 15 * 60;
 export const CLASSROOM_LATE_JOIN_SECONDS = 30 * 60;
 export const CLASSROOM_MAX_PARTICIPANTS = 5;
@@ -106,8 +113,7 @@ async function dailyRequest(path: string, init: RequestInit) {
     string,
     unknown
   > | null;
-  if (!response.ok)
-    throw new Error(`Daily request failed (${response.status})`);
+  if (!response.ok) throw new DailyRequestError(response.status);
   return body;
 }
 
@@ -129,6 +135,26 @@ export async function deleteDailyRoom(roomName: string) {
   await dailyRequest(`/rooms/${encodeURIComponent(roomName)}`, {
     method: 'DELETE',
   });
+}
+
+// Reconcile provider timing from the authorised lesson immediately before joining.
+// Calendar rescheduling must not leave a room on its original opening/expiry time.
+export async function syncDailyRoom(
+  lessonId: string,
+  startsAt: string,
+  endsAt: string,
+) {
+  const { name, ...config } = dailyRoomRequest(lessonId, startsAt, endsAt);
+  try {
+    await dailyRequest(`/rooms/${encodeURIComponent(name)}`, {
+      method: 'POST',
+      body: JSON.stringify(config),
+    });
+  } catch (error) {
+    if (!(error instanceof DailyRequestError) || error.status !== 404)
+      throw error;
+    await createDailyRoom(lessonId, startsAt, endsAt);
+  }
 }
 
 export async function createDailyToken(

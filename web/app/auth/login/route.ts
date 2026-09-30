@@ -5,11 +5,18 @@ export async function POST(request: Request) {
   const origin = safeOrigin(request);
   if (!origin) return new Response('Invalid request origin', { status: 403 });
   let signInPath = '/login';
+  let profile = 'student';
   const fail = (message: string) =>
-    Response.redirect(`${origin}${signInPath}?message=${message}`, 303);
+    Response.redirect(
+      `${origin}${signInPath}?${new URLSearchParams({ message, ...(signInPath === '/login' ? { profile } : {}) })}`,
+      303,
+    );
   try {
     const data = await request.formData();
     const kind = data.get('kind');
+    // Profile only selects the form on a retry. Stored account roles determine access.
+    if (kind === 'adult')
+      profile = data.get('profile') === 'teacher' ? 'teacher' : 'parent';
     if (kind === 'admin') signInPath = '/admin/login';
     const identifier = formText(data, 'identifier').trim().toLowerCase();
     const password = formText(data, 'password');

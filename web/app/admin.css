@@ -16,6 +16,17 @@
   height: 100svh;
   overflow-y: auto;
 }
+.admin-login-logo {
+  color: #caff68;
+  text-decoration: none;
+  letter-spacing: normal;
+  width: fit-content;
+}
+.admin-login-links {
+  display: grid;
+  justify-items: start;
+  gap: 20px;
+}
 .admin-sidebar .wordmark,
 .admin-login-brand .wordmark {
   color: var(--paper);
