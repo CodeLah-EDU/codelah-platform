@@ -54,7 +54,7 @@ Previews use explicitly fictional data and block writes/downloads. Authenticated
 4. Verify an authenticated teacher/student/parent cycle on the hosted project: upload/open/unlock/revoke a worksheet; assign four students and reject the fifth; edit attendance and publish/withdraw a note; upload and retrieve a student `.py` file; switch between linked children and verify revocation.
 5. Verify a rescheduled live classroom using the configured Daily project. The existing live-call acceptance requirements remain outstanding.
 
-The shared Supabase database was not modified, and this branch was not published or deployed. Payment information is a manual ledger; payment collection is not implemented. Practise deliberately remains a future-feature page, as requested.
+The shared Supabase database was not modified. This branch was published to GitHub on `feat/learning-workspace-overhaul` on 30 September 2026 (c64ff9b); merge to `dev` and deployment remain pending. Payment information is a manual ledger; payment collection is not implemented. Practise deliberately remains a future-feature page, as requested.
 
 ## Platform sign-in follow-up
 

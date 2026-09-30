@@ -44,4 +44,4 @@ No hosted database changes, invitations, or real financial records are made duri
 
 ## Preview
 
-Run `npm run dev` in `web/`, then open `http://localhost:3001/preview/admin`. Real administrators enter at `/admin/login`. This branch has not been published or deployed by this work.
+Run `npm run dev` in `web/`, then open `http://localhost:3001/preview/admin`. Real administrators enter at `/admin/login`. Published to GitHub on `feat/learning-workspace-overhaul` on 30 September 2026 (c64ff9b); deployment and hosted rollout remain pending.

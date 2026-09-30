@@ -1,7 +1,7 @@
 ---
 project: codelah-platform
 status: active
-summary: Workspace and admin overhaul verified for GitHub publication on feat/learning-workspace-overhaul; hosted deployment and migrations remain pending.
+summary: Workspace and admin overhaul published on GitHub feat/learning-workspace-overhaul; merge to dev, hosted deployment and migrations remain pending.
 updated: 2026-09-30
 ---
 
@@ -11,7 +11,7 @@ updated: 2026-09-30
 - [ ] Hosted rollout of workspace and admin overhaul  ^m-05
 
 ## Now
-- [ ] Publish all platform changes and verify the GitHub feature branch  prio:high  ^t-0011
+- [x] Publish all platform changes and verify the GitHub feature branch  prio:high done:2026-09-30  ^t-0011
 - [ ] Back up hosted Supabase, apply 202609290001_learning_workspace and 202609290002_admin_operations migrations  prio:high  ^t-0001
 - [ ] Deploy student-accounts function (JWT on), set CODELAH_APP_ORIGIN, install invite email template  prio:high  ^t-0002
 - [ ] Verify one adult invitation end to end and fee/expense/roster flows on hosted  prio:high  ^t-0003
@@ -33,5 +33,5 @@ updated: 2026-09-30
 
 ## Log
 ### 2026-09-30
-- Prepared the workspace/admin overhaul for GitHub; 65 tests, TypeScript, application lint, production build, and diff checks passed. Hosted rollout remains separate.
+- Published the workspace/admin overhaul to origin/feat/learning-workspace-overhaul (c64ff9b), set upstream tracking, and verified the GitHub ref. All 65 tests, TypeScript, application lint, production build, and staged diff checks passed; browser and hosted acceptance were not rerun. Merge and hosted rollout remain pending.
 - Tracker created from README and docs/*-overhaul.md rollout notes
