@@ -1,0 +1,6 @@
+
+# Supabase CLI link state (machine-specific)
+supabase/.temp/
+
+# Personal Claude Code settings
+.claude/settings.local.json
