@@ -97,8 +97,8 @@ async function joinClassroom(page: Page, lessonId: string) {
         `join route ${r.status()}: ${(await r.text().catch(() => '')).slice(0, 200).replace(/"token":"[^"]+"/, '"token":"…"')}`,
       );
   });
+  // The classroom page starts joining by itself; no CodeLah button to press first.
   await page.goto(`${origin}/dashboard/lessons/${lessonId}/classroom`);
-  await page.getByRole('button', { name: 'Check devices and join' }).click();
   // Daily Prebuilt shows its own pre-join (camera/mic check) screen inside the iframe.
   const frame = page.frameLocator('.daily-frame iframe');
   try {
@@ -268,13 +268,18 @@ test('five people share one Daily classroom with the right permissions', async (
       .eq('lesson_id', lessonId);
     expect(roster.count, 'all four students on the roster').toBe(4);
 
-    await test.step('teacher prepares the private room', async () => {
-      await t.page.goto(`${origin}/dashboard/lessons/${lessonId}`);
-      await t.page
-        .getByRole('button', { name: 'Prepare live classroom' })
-        .click();
-      await expect(t.page).toHaveURL(/message=saved/);
+    const firstStudent = await signIn(students[0]);
+    await test.step('students wait until the teacher opens the room', async () => {
+      const early = await firstStudent.page.request.post(
+        `${origin}/dashboard/lessons/classroom/join`,
+        { headers: { Origin: origin }, multipart: { lesson_id: lessonId } },
+      );
+      expect(early.status()).toBe(409);
     });
+
+    const teacherFrame =
+      await test.step('teacher joins and opens the room', () =>
+        joinClassroom(t.page, lessonId));
     const room = `codelah-${lessonId.replaceAll('-', '')}`;
     roomName = room;
     const details = await daily(`/rooms/${room}`);
@@ -282,11 +287,21 @@ test('five people share one Daily classroom with the right permissions', async (
     expect(details.body?.privacy).toBe('private');
     expect(details.body?.config?.max_participants).toBe(5);
 
-    const teacherFrame = await test.step('teacher joins', () =>
-      joinClassroom(t.page, lessonId));
+    const chat = (page: Page) =>
+      page.getByRole('complementary', { name: 'Class chat' });
+    const sendChat = async (text: string) => {
+      await chat(t.page).getByLabel('Message to the class').fill(text);
+      await chat(t.page).getByRole('button', { name: 'Send' }).click();
+      await expect(chat(t.page).getByText(text)).toBeVisible();
+    };
+    // Sent before anyone else arrives, so students must receive it as catch-up.
+    await sendChat(`print("early ${suffix}")`);
+
+    const studentPages: Page[] = [];
     const studentFrames: FrameLocator[] = [];
     for (const [i, s] of students.entries()) {
-      const session = await signIn(s);
+      const session = i === 0 ? firstStudent : await signIn(s);
+      studentPages.push(session.page);
       studentFrames.push(
         await test.step(`student ${i + 1} joins`, () =>
           joinClassroom(session.page, lessonId)),
@@ -307,6 +322,38 @@ test('five people share one Daily classroom with the right permissions', async (
         ).toHaveCount(0);
     });
 
+    await test.step('the teacher chat reaches every student', async () => {
+      await sendChat(`live note ${suffix}`);
+      for (const page of studentPages) {
+        await expect(
+          chat(page).getByText(`print("early ${suffix}")`),
+        ).toBeVisible();
+        await expect(chat(page).getByText(`live note ${suffix}`)).toBeVisible();
+        await expect(chat(page).getByLabel('Message to the class')).toHaveCount(
+          0,
+        );
+      }
+    });
+
+    // Kept for a person to review the call layout after the run.
+    await t.page.screenshot({
+      path: test.info().outputPath('teacher-call.png'),
+    });
+    await studentPages[0].screenshot({
+      path: test.info().outputPath('student-call.png'),
+    });
+
+    await test.step('the teacher can switch to full screen', async () => {
+      await t.page.getByRole('button', { name: 'Full screen' }).click();
+      await expect(
+        t.page.getByRole('button', { name: 'Exit full screen' }),
+      ).toBeVisible();
+      await t.page.getByRole('button', { name: 'Exit full screen' }).click();
+      await expect(
+        t.page.getByRole('button', { name: 'Full screen' }),
+      ).toBeVisible();
+    });
+
     await test.step('a parent cannot open or join the classroom', async () => {
       const p = await signIn(parent);
       // The streamed loading shell fixes the HTTP status at 200, so check what renders.
@@ -315,7 +362,7 @@ test('five people share one Daily classroom with the right permissions', async (
         p.page.getByText('This page could not be found.'),
       ).toBeVisible();
       await expect(
-        p.page.getByRole('button', { name: 'Check devices and join' }),
+        p.page.getByRole('button', { name: /join classroom/i }),
       ).toHaveCount(0);
       const join = await p.page.request.post(
         `${origin}/dashboard/lessons/classroom/join`,
@@ -332,9 +379,6 @@ test('five people share one Daily classroom with the right permissions', async (
       await extra.page.goto(
         `${origin}/dashboard/lessons/${lessonId}/classroom`,
       );
-      await extra.page
-        .getByRole('button', { name: 'Check devices and join' })
-        .click();
       const frame = extra.page.frameLocator('.daily-frame iframe');
       await frame
         .getByRole('button', { name: /^join/i })

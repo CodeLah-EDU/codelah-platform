@@ -21,6 +21,13 @@ export type AuditEntry = {
   after_record: Record<string, unknown> | null;
   created_at: string;
 };
+export type PasswordChange = {
+  id: string;
+  student_id: string;
+  changed_by: string | null;
+  changed_by_role: 'admin' | 'parent';
+  created_at: string;
+};
 export type AdminData = {
   account: Account;
   people: Account[];
@@ -36,6 +43,7 @@ export type AdminData = {
   payments: WorkspaceData['payments'];
   expenses: Expense[];
   audit: AuditEntry[];
+  passwordChanges: PasswordChange[];
   unavailable: string[];
 };
 export const expenseCategories = [

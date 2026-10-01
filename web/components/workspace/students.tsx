@@ -7,6 +7,7 @@ import {
   Check,
   Circle,
   GraduationCap,
+  KeyRound,
   Plus,
   Search,
 } from 'lucide-react';
@@ -152,7 +153,45 @@ export function StudentView({ id, tab }: { id?: string; tab: string }) {
           <ArrowLeft size={17} /> All students
         </Link>
       )}
-      <Title title={student.display_name}>
+      <Title
+        title={student.display_name}
+        action={
+          data.account.role === 'parent' && (
+            <Modal
+              title={`Reset ${student.display_name}’s password`}
+              trigger={
+                <>
+                  <KeyRound size={17} /> Reset password
+                </>
+              }
+            >
+              {(close) => (
+                <SaveForm
+                  action="student_password"
+                  values={{ student_id: student.id }}
+                  label="Change password"
+                  onSaved={close}
+                >
+                  <Field label="New password">
+                    <input
+                      type="password"
+                      name="password"
+                      autoComplete="new-password"
+                      minLength={12}
+                      maxLength={128}
+                      required
+                    />
+                  </Field>
+                  <p className="ws-muted">
+                    At least 12 characters. This replaces the current password,
+                    so share the new one with {student.display_name} privately.
+                  </p>
+                </SaveForm>
+              )}
+            </Modal>
+          )
+        }
+      >
         {teacher
           ? 'One learner. Every part of their journey.'
           : 'Your child’s classes, progress, and teacher updates.'}

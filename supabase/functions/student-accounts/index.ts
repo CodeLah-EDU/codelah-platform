@@ -87,6 +87,8 @@ Deno.serve(async (request: Request) => {
     if (typeof password !== "string" || password.length < 12 || password.length > 128)
       return reply({ error: "Use a password with 12–128 characters." }, 400);
     if (body.action === "reset_password") {
+      // Parents reset their own children's passwords; teachers ask an administrator.
+      if (!["admin", "parent"].includes(actor.role)) return reply({ error: "Access denied" }, 403);
       if (typeof body.student_id !== "string") return reply({ error: "Invalid student" }, 400);
       const { data: allowed, error } = await client.rpc("can_manage_student", {
         target: body.student_id,
@@ -97,6 +99,12 @@ Deno.serve(async (request: Request) => {
       });
       if (updateError)
         return reply({ error: "Password could not be changed. Please try again." }, 400);
+      // Shown to administrators. The password has already changed, so a failed log is not an error.
+      await admin.from("student_password_changes").insert({
+        student_id: body.student_id,
+        changed_by: user.id,
+        changed_by_role: actor.role,
+      });
       return reply({ ok: true });
     }
     if (body.action === "create_student") {

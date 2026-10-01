@@ -520,6 +520,9 @@ export function AccountRecord({
     .filter((p) => p.student_id === id && p.status === 'pending')
     .reduce((sum, p) => sum + p.amount_cents, 0);
   const summary = attendanceSummary(data, now, id);
+  const passwordChanges = data.passwordChanges.filter(
+    (c) => c.student_id === id,
+  );
   const classIds = student
     ? data.enrolments
         .filter((e) => e.student_id === id && e.active)
@@ -740,6 +743,31 @@ export function AccountRecord({
                       </Form>
                     )}
                   </Modal>
+                </div>
+              )}
+              {student && (
+                <div className="ops-password-history">
+                  <h3>Password changes</h3>
+                  {passwordChanges.length ? (
+                    <ul>
+                      {passwordChanges.slice(0, 5).map((change) => (
+                        <li key={change.id}>
+                          <strong>
+                            {data.people.find((p) => p.id === change.changed_by)
+                              ?.display_name ?? 'Removed account'}
+                          </strong>{' '}
+                          ({change.changed_by_role}) ·{' '}
+                          {new Intl.DateTimeFormat('en-SG', {
+                            timeZone: 'Asia/Singapore',
+                            dateStyle: 'medium',
+                            timeStyle: 'short',
+                          }).format(new Date(change.created_at))}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p>No password resets recorded yet.</p>
+                  )}
                 </div>
               )}
             </section>

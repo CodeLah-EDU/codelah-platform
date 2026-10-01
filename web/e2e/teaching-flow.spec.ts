@@ -96,22 +96,22 @@ test('password permissions and the complete teacher–student–parent lesson cy
       ).toBeNull();
       expect(
         (
-          await admin
-            .from('accounts')
-            .insert({
-              id: f.id,
-              display_name: name,
-              role,
-              status: 'active',
-              contact_email: `${username}@example.invalid`,
-            })
+          await admin.from('accounts').insert({
+            id: f.id,
+            display_name: name,
+            role,
+            status: 'active',
+            contact_email: `${username}@example.invalid`,
+          })
         ).error,
       ).toBeNull();
     }
     return f;
   }
   async function signIn(f: { username: string }, pass = password) {
-    const ctx = await browser.newContext();
+    const ctx = await browser.newContext({
+      storageState: { cookies: [], origins: [] },
+    });
     ctx.setDefaultTimeout(15000);
     contexts.push(ctx);
     const client = await clientFor(ctx);
@@ -152,17 +152,16 @@ test('password permissions and the complete teacher–student–parent lesson cy
     const p = await signIn(parent),
       t = await signIn(teacher);
     // Phase 2: parent resets the linked student's password using the actual UI.
-    await p.page.goto(`${origin}/dashboard`);
-    await p.page
-      .getByText('Set a new student password', { exact: true })
-      .click();
-    await p.page
+    await p.page.goto(
+      `${origin}/dashboard/students/${student.id}/overview?child=${student.id}`,
+    );
+    await p.page.getByRole('button', { name: 'Reset password' }).click();
+    const dialog = p.page.getByRole('dialog');
+    await dialog
       .getByLabel('New password', { exact: true })
       .fill(resetPassword);
-    await p.page
-      .getByRole('button', { name: 'Change student password', exact: true })
-      .click();
-    await expect(p.page).toHaveURL(/message=password$/);
+    await dialog.getByRole('button', { name: 'Change password' }).click();
+    await expect(p.page.getByText('Changes saved.')).toBeVisible();
     const probe = createClient(url, key, { auth: { persistSession: false } });
     expect(
       (
@@ -202,34 +201,52 @@ test('password permissions and the complete teacher–student–parent lesson cy
         })
       ).error,
     ).toBeTruthy();
+    // Teachers ask an administrator instead; only parents and admins reset passwords.
     expect(
       (
         await t.client.functions.invoke('student-accounts', {
           body: { action: 'reset_password', student_id: student.id, password },
         })
       ).error,
+    ).toBeTruthy();
+    expect(
+      (
+        await p.client.functions.invoke('student-accounts', {
+          body: { action: 'reset_password', student_id: student.id, password },
+        })
+      ).error,
     ).toBeNull();
+    // The administrator can see both parent resets.
+    const changes = await admin
+      .from('student_password_changes')
+      .select('changed_by,changed_by_role')
+      .eq('student_id', student.id);
+    expect(changes.error).toBeNull();
+    expect(changes.data).toEqual([
+      { changed_by: parent.id, changed_by_role: 'parent' },
+      { changed_by: parent.id, changed_by_role: 'parent' },
+    ]);
     // Real username/password sign-in, self-service change, sign-out and re-entry.
-    const sCtx = await browser.newContext();
+    const sCtx = await browser.newContext({
+      storageState: { cookies: [], origins: [] },
+    });
     sCtx.setDefaultTimeout(15000);
     contexts.push(sCtx);
     const sp = await sCtx.newPage();
     async function studentLogin(pass: string) {
       await sp.goto(`${origin}/login`);
-      const form = sp
-        .locator('form')
-        .filter({
-          has: sp.getByRole('button', { name: 'Student sign in', exact: true }),
-        });
+      const form = sp.locator('form').filter({
+        has: sp.getByRole('button', { name: 'Student sign in', exact: true }),
+      });
       await form.getByLabel('Username', { exact: true }).fill(student.username);
       await form.getByLabel('Password', { exact: true }).fill(pass);
-      await form.getByRole('button').click();
-      await expect(sp).toHaveURL(/\/dashboard$/);
+      await form
+        .getByRole('button', { name: 'Student sign in', exact: true })
+        .click();
+      await expect(sp).toHaveURL(/\/dashboard\/home$/);
     }
     await studentLogin(password);
-    await sp
-      .getByRole('link', { name: 'Change password', exact: true })
-      .click();
+    await sp.getByRole('link', { name: 'Account settings' }).click();
     await sp.getByLabel('New password', { exact: true }).fill(resetPassword);
     await sp
       .getByLabel('Confirm new password', { exact: true })
@@ -237,7 +254,8 @@ test('password permissions and the complete teacher–student–parent lesson cy
     await sp
       .getByRole('button', { name: 'Save password', exact: true })
       .click();
-    await expect(sp).toHaveURL(/\/dashboard$/);
+    await expect(sp).toHaveURL(/\/dashboard(\/home)?(\?.*)?$/);
+    await sp.goto(`${origin}/dashboard/home`);
     await sp.getByRole('button', { name: 'Sign out', exact: true }).click();
     await expect(sp).toHaveURL(/\/login\?message=signedout$/);
     await studentLogin(resetPassword);
@@ -366,10 +384,10 @@ test('password permissions and the complete teacher–student–parent lesson cy
         .locator('summary')
         .filter({ hasText: 'Weekly feedback' })
         .click();
-      await learner.getByLabel('Topics covered', { exact: true }).fill('Loops');
-      await learner.getByLabel('Teacher feedback', { exact: true }).fill(note);
+      await learner.getByLabel(/^Topics covered/).fill('Loops');
+      await learner.getByLabel(/^Teacher feedback/).fill(note);
       await learner
-        .getByLabel('Practice for next time', { exact: true })
+        .getByLabel(/^Practice for next time/)
         .fill('Try a countdown loop.');
       await learner
         .getByRole('button', {
@@ -517,7 +535,8 @@ test('password permissions and the complete teacher–student–parent lesson cy
       if (result.error) errors.push(result.error.message);
     }
     const session = await admin.auth.getUser();
-    if (!session.error && session.data.user) await context.storageState({ path: process.env.CODELAH_ADMIN_STATE! });
+    if (!session.error && session.data.user)
+      await context.storageState({ path: process.env.CODELAH_ADMIN_STATE! });
     expect(errors, 'QA cleanup').toEqual([]);
   }
 });

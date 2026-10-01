@@ -115,6 +115,15 @@ export function adminPreview(now: number): AdminData {
       after_record: p,
       created_at: `${today}T09:00:00+08:00`,
     })),
+    passwordChanges: [
+      {
+        id: 'password-1',
+        student_id: 'maya',
+        changed_by: 'parent',
+        changed_by_role: 'parent',
+        created_at: `${today}T08:30:00+08:00`,
+      },
+    ],
     unavailable: [],
   };
 }

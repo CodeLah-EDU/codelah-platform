@@ -19,6 +19,7 @@ import {
   singaporeDay,
   studentLessons,
   type Lesson,
+  type WorkspaceData,
 } from '@/lib/workspace';
 import { lessonDate, lessonTime } from '@/lib/lessons';
 import { LESSON_FILE_ACCEPT } from '@/lib/lesson-files';
@@ -485,7 +486,10 @@ export function LessonView({ id }: { id: string }) {
           {lesson.status}
         </Tag>
         {data.account.role !== 'parent' && lesson.status === 'scheduled' && (
-          <Link className="ws-button" href={`/dashboard/lessons/${id}`}>
+          <Link
+            className="ws-button"
+            href={`/dashboard/lessons/${id}/classroom`}
+          >
             <Video size={18} /> Classroom
           </Link>
         )}
@@ -496,9 +500,12 @@ export function LessonView({ id }: { id: string }) {
             <h2>{teacher ? 'Class roster' : 'Attendance'}</h2>
             {teacher && <Tag>{roster.length}/4 students</Tag>}
           </div>
-          {students.map((s) => (
-            <div className="ws-attendance-row" key={s.id}>
-              <div className="ws-section-heading">
+          {students.map((s) => {
+            const attendance = data.attendance.find(
+              (a) => a.student_id === s.id && a.lesson_id === id,
+            );
+            return (
+              <div className="ws-roster-row" key={s.id}>
                 {teacher ? (
                   <Link href={href(`students/${s.id}/overview`)}>
                     <Person name={s.display_name} />
@@ -506,19 +513,60 @@ export function LessonView({ id }: { id: string }) {
                 ) : (
                   <Person name={s.display_name} />
                 )}
-                <Tag
-                  tone={calendarStatus(
-                    lesson,
-                    data.attendance.find(
-                      (a) => a.student_id === s.id && a.lesson_id === id,
-                    )?.status,
-                    now,
-                  )}
-                >
-                  {data.attendance.find(
-                    (a) => a.student_id === s.id && a.lesson_id === id,
-                  )?.status || 'Unmarked'}
+                <Tag tone={calendarStatus(lesson, attendance?.status, now)}>
+                  {attendance?.status || 'Unmarked'}
                 </Tag>
+                {teacher && (
+                  <Modal
+                    title={`Attendance · ${s.display_name}`}
+                    trigger="Attendance"
+                    className="ws-text-button"
+                  >
+                    {(close) => (
+                      <>
+                        <SaveForm
+                          action="attendance_save"
+                          values={{ lesson_id: id, student_id: s.id }}
+                          label="Save attendance"
+                          onSaved={close}
+                        >
+                          <Field label="Attendance">
+                            <select
+                              name="status"
+                              defaultValue={attendance?.status || 'unmarked'}
+                            >
+                              {[
+                                'unmarked',
+                                'present',
+                                'late',
+                                'absent',
+                                'excused',
+                              ].map((status) => (
+                                <option key={status}>{status}</option>
+                              ))}
+                            </select>
+                          </Field>
+                          <Field label="Attendance note">
+                            <input
+                              name="note"
+                              maxLength={1000}
+                              defaultValue={attendance?.note}
+                            />
+                          </Field>
+                        </SaveForm>
+                        {attendance && (
+                          <Action
+                            action="attendance_delete"
+                            values={{ lesson_id: id, student_id: s.id }}
+                            confirm="Clear this attendance record?"
+                          >
+                            Clear attendance
+                          </Action>
+                        )}
+                      </>
+                    )}
+                  </Modal>
+                )}
                 {editable && (
                   <Action
                     action="roster_remove"
@@ -530,61 +578,8 @@ export function LessonView({ id }: { id: string }) {
                   </Action>
                 )}
               </div>
-              {teacher && (
-                <details>
-                  <summary>Record attendance</summary>
-                  <SaveForm
-                    action="attendance_save"
-                    values={{ lesson_id: id, student_id: s.id }}
-                    label="Save attendance"
-                  >
-                    <Field label="Attendance">
-                      <select
-                        name="status"
-                        defaultValue={
-                          data.attendance.find(
-                            (a) => a.student_id === s.id && a.lesson_id === id,
-                          )?.status || 'unmarked'
-                        }
-                      >
-                        {[
-                          'unmarked',
-                          'present',
-                          'late',
-                          'absent',
-                          'excused',
-                        ].map((status) => (
-                          <option key={status}>{status}</option>
-                        ))}
-                      </select>
-                    </Field>
-                    <Field label="Attendance note">
-                      <input
-                        name="note"
-                        maxLength={1000}
-                        defaultValue={
-                          data.attendance.find(
-                            (a) => a.student_id === s.id && a.lesson_id === id,
-                          )?.note
-                        }
-                      />
-                    </Field>
-                  </SaveForm>
-                  {data.attendance.some(
-                    (a) => a.student_id === s.id && a.lesson_id === id,
-                  ) && (
-                    <Action
-                      action="attendance_delete"
-                      values={{ lesson_id: id, student_id: s.id }}
-                      confirm="Clear this attendance record?"
-                    >
-                      Clear attendance
-                    </Action>
-                  )}
-                </details>
-              )}
-            </div>
-          ))}
+            );
+          })}
           {editable && (
             <SaveForm
               action="roster_add"
@@ -649,177 +644,181 @@ export function LessonView({ id }: { id: string }) {
           )}
         </section>
       </div>
-      {students.map((s) => {
-        const report = data.reports.find(
-            (r) => r.lesson_id === id && r.student_id === s.id,
-          ),
-          feedback = data.feedback.find(
-            (r) => r.lesson_id === id && r.student_id === s.id,
-          );
-        return (
-          <section className="ws-panel ws-spaced" key={s.id}>
-            <div className="ws-section-heading">
-              <h2>
-                {teacher
-                  ? `${s.display_name} · class notes`
-                  : 'From your teacher'}
-              </h2>
-              {report && <Tag tone="attended">Published</Tag>}
-            </div>
-            {report ? (
-              <div className="ws-report">
-                {report.topics && (
-                  <p>
-                    <strong>What we explored</strong>
-                    <br />
-                    {report.topics}
-                  </p>
-                )}
-                <p className="preserve-lines">{report.note}</p>
-                {report.practice && (
-                  <p>
-                    <strong>Next steps</strong>
-                    <br />
-                    {report.practice}
-                  </p>
+      {teacher ? (
+        <ClassNotes lessonId={id} students={students} />
+      ) : (
+        students.map((s) => {
+          const report = data.reports.find(
+              (r) => r.lesson_id === id && r.student_id === s.id,
+            ),
+            feedback = data.feedback.find(
+              (r) => r.lesson_id === id && r.student_id === s.id,
+            );
+          return (
+            <section className="ws-panel ws-spaced" key={s.id}>
+              <div className="ws-section-heading">
+                <h2>
+                  {teacher
+                    ? `${s.display_name} · class notes`
+                    : 'From your teacher'}
+                </h2>
+                {report && <Tag tone="attended">Published</Tag>}
+              </div>
+              {report ? (
+                <div className="ws-report">
+                  {report.topics && (
+                    <p>
+                      <strong>What we explored</strong>
+                      <br />
+                      {report.topics}
+                    </p>
+                  )}
+                  <p className="preserve-lines">{report.note}</p>
+                  {report.practice && (
+                    <p>
+                      <strong>Next steps</strong>
+                      <br />
+                      {report.practice}
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <p className="ws-muted">
+                  Your teacher’s published comments will appear here.
+                </p>
+              )}
+              {teacher && (
+                <details>
+                  <summary>
+                    {feedback
+                      ? 'Edit feedback and publication'
+                      : 'Write a class update'}
+                  </summary>
+                  <SaveForm
+                    action="feedback_save"
+                    values={{ lesson_id: id, student_id: s.id }}
+                    label="Save class update"
+                  >
+                    <Field label="Topics covered">
+                      <textarea
+                        name="topics"
+                        maxLength={2000}
+                        defaultValue={feedback?.topics}
+                        rows={2}
+                      />
+                    </Field>
+                    <Field label="Comments for the student and parents">
+                      <textarea
+                        name="note"
+                        required
+                        maxLength={5000}
+                        defaultValue={feedback?.note}
+                        rows={4}
+                      />
+                    </Field>
+                    <Field label="Next steps">
+                      <textarea
+                        name="practice"
+                        maxLength={2000}
+                        defaultValue={feedback?.practice}
+                        rows={2}
+                      />
+                    </Field>
+                    <Field label="Visibility">
+                      <select
+                        name="status"
+                        defaultValue={feedback?.status || 'draft'}
+                      >
+                        <option value="draft">
+                          Private draft · teachers only
+                        </option>
+                        <option value="published">
+                          Publish to student and linked parents
+                        </option>
+                      </select>
+                    </Field>
+                    <p className="ws-muted">
+                      Saving a draft keeps the last published update visible to
+                      the family.
+                    </p>
+                  </SaveForm>
+                  {feedback && (
+                    <Action
+                      action="feedback_delete"
+                      values={{ lesson_id: id, student_id: s.id }}
+                      confirm="Delete this feedback and withdraw its published family update?"
+                    >
+                      Delete and withdraw update
+                    </Action>
+                  )}
+                </details>
+              )}
+              <div className="ws-student-comments">
+                <h3>{teacher ? 'Student reflections' : 'Your class notes'}</h3>
+                {data.comments
+                  .filter((c) => c.lesson_id === id && c.student_id === s.id)
+                  .map((c) => (
+                    <article key={c.id}>
+                      <p className="preserve-lines">{c.body}</p>
+                      <small>{lessonDate(c.created_at)}</small>
+                      {data.account.role === 'student' && (
+                        <div className="ws-inline-actions">
+                          <Modal
+                            title="Edit your note"
+                            trigger="Edit"
+                            className="ws-text-button"
+                          >
+                            {(close) => (
+                              <SaveForm
+                                action="comment_save"
+                                values={{ id: c.id, lesson_id: id }}
+                                onSaved={close}
+                              >
+                                <Field label="Your note">
+                                  <textarea
+                                    name="body"
+                                    required
+                                    maxLength={5000}
+                                    defaultValue={c.body}
+                                    rows={4}
+                                  />
+                                </Field>
+                              </SaveForm>
+                            )}
+                          </Modal>
+                          <Action
+                            action="comment_delete"
+                            values={{ id: c.id }}
+                            confirm="Delete this note?"
+                          >
+                            Delete
+                          </Action>
+                        </div>
+                      )}
+                    </article>
+                  ))}
+                {data.account.role === 'student' && (
+                  <SaveForm
+                    action="comment_save"
+                    values={{ lesson_id: id }}
+                    label="Save note"
+                  >
+                    <Field label="Add your own note">
+                      <textarea
+                        name="body"
+                        maxLength={5000}
+                        required
+                        placeholder="What did you build? What would you like to try next?"
+                        rows={3}
+                      />
+                    </Field>
+                  </SaveForm>
                 )}
               </div>
-            ) : (
-              <p className="ws-muted">
-                Your teacher’s published comments will appear here.
-              </p>
-            )}
-            {teacher && (
-              <details>
-                <summary>
-                  {feedback
-                    ? 'Edit feedback and publication'
-                    : 'Write a class update'}
-                </summary>
-                <SaveForm
-                  action="feedback_save"
-                  values={{ lesson_id: id, student_id: s.id }}
-                  label="Save class update"
-                >
-                  <Field label="Topics covered">
-                    <textarea
-                      name="topics"
-                      maxLength={2000}
-                      defaultValue={feedback?.topics}
-                      rows={2}
-                    />
-                  </Field>
-                  <Field label="Comments for the student and parents">
-                    <textarea
-                      name="note"
-                      required
-                      maxLength={5000}
-                      defaultValue={feedback?.note}
-                      rows={4}
-                    />
-                  </Field>
-                  <Field label="Next steps">
-                    <textarea
-                      name="practice"
-                      maxLength={2000}
-                      defaultValue={feedback?.practice}
-                      rows={2}
-                    />
-                  </Field>
-                  <Field label="Visibility">
-                    <select
-                      name="status"
-                      defaultValue={feedback?.status || 'draft'}
-                    >
-                      <option value="draft">
-                        Private draft · teachers only
-                      </option>
-                      <option value="published">
-                        Publish to student and linked parents
-                      </option>
-                    </select>
-                  </Field>
-                  <p className="ws-muted">
-                    Saving a draft keeps the last published update visible to
-                    the family.
-                  </p>
-                </SaveForm>
-                {feedback && (
-                  <Action
-                    action="feedback_delete"
-                    values={{ lesson_id: id, student_id: s.id }}
-                    confirm="Delete this feedback and withdraw its published family update?"
-                  >
-                    Delete and withdraw update
-                  </Action>
-                )}
-              </details>
-            )}
-            <div className="ws-student-comments">
-              <h3>{teacher ? 'Student reflections' : 'Your class notes'}</h3>
-              {data.comments
-                .filter((c) => c.lesson_id === id && c.student_id === s.id)
-                .map((c) => (
-                  <article key={c.id}>
-                    <p className="preserve-lines">{c.body}</p>
-                    <small>{lessonDate(c.created_at)}</small>
-                    {data.account.role === 'student' && (
-                      <div className="ws-inline-actions">
-                        <Modal
-                          title="Edit your note"
-                          trigger="Edit"
-                          className="ws-text-button"
-                        >
-                          {(close) => (
-                            <SaveForm
-                              action="comment_save"
-                              values={{ id: c.id, lesson_id: id }}
-                              onSaved={close}
-                            >
-                              <Field label="Your note">
-                                <textarea
-                                  name="body"
-                                  required
-                                  maxLength={5000}
-                                  defaultValue={c.body}
-                                  rows={4}
-                                />
-                              </Field>
-                            </SaveForm>
-                          )}
-                        </Modal>
-                        <Action
-                          action="comment_delete"
-                          values={{ id: c.id }}
-                          confirm="Delete this note?"
-                        >
-                          Delete
-                        </Action>
-                      </div>
-                    )}
-                  </article>
-                ))}
-              {data.account.role === 'student' && (
-                <SaveForm
-                  action="comment_save"
-                  values={{ lesson_id: id }}
-                  label="Save note"
-                >
-                  <Field label="Add your own note">
-                    <textarea
-                      name="body"
-                      maxLength={5000}
-                      required
-                      placeholder="What did you build? What would you like to try next?"
-                      rows={3}
-                    />
-                  </Field>
-                </SaveForm>
-              )}
-            </div>
-          </section>
-        );
-      })}
+            </section>
+          );
+        })
+      )}
       {teacher && (
         <div className="ws-danger-zone">
           <Action
@@ -835,5 +834,134 @@ export function LessonView({ id }: { id: string }) {
         </div>
       )}
     </>
+  );
+}
+
+// Teachers see every student's update in one compact list; writing happens in a dialog.
+function ClassNotes({
+  lessonId,
+  students,
+}: {
+  lessonId: string;
+  students: WorkspaceData['people'];
+}) {
+  const { data } = useStudio();
+  const published = students.filter((s) =>
+    data.reports.some((r) => r.lesson_id === lessonId && r.student_id === s.id),
+  ).length;
+  return (
+    <section className="ws-panel ws-spaced">
+      <div className="ws-section-heading">
+        <h2>Class notes</h2>
+        <Tag>
+          {published}/{students.length} published
+        </Tag>
+      </div>
+      {!students.length && (
+        <p className="ws-muted">Add students to write their class notes.</p>
+      )}
+      {students.map((s) => {
+        const report = data.reports.find(
+          (r) => r.lesson_id === lessonId && r.student_id === s.id,
+        );
+        const feedback = data.feedback.find(
+          (r) => r.lesson_id === lessonId && r.student_id === s.id,
+        );
+        const comments = data.comments.filter(
+          (c) => c.lesson_id === lessonId && c.student_id === s.id,
+        );
+        const note = feedback?.note ?? report?.note;
+        return (
+          <div className="ws-note-row" key={s.id}>
+            <div className="ws-roster-row">
+              <Person name={s.display_name} />
+              <Tag tone={report ? 'attended' : ''}>
+                {report ? 'Published' : feedback ? 'Draft' : 'Not written'}
+              </Tag>
+              <Modal
+                title={`Class update · ${s.display_name}`}
+                trigger={feedback || report ? 'Edit update' : 'Write update'}
+                className="ws-text-button"
+              >
+                {(close) => (
+                  <>
+                    <SaveForm
+                      action="feedback_save"
+                      values={{ lesson_id: lessonId, student_id: s.id }}
+                      label="Save class update"
+                      onSaved={close}
+                    >
+                      <Field label="Topics covered">
+                        <textarea
+                          name="topics"
+                          maxLength={2000}
+                          defaultValue={feedback?.topics}
+                          rows={2}
+                        />
+                      </Field>
+                      <Field label="Comments for the student and parents">
+                        <textarea
+                          name="note"
+                          required
+                          maxLength={5000}
+                          defaultValue={feedback?.note}
+                          rows={4}
+                        />
+                      </Field>
+                      <Field label="Next steps">
+                        <textarea
+                          name="practice"
+                          maxLength={2000}
+                          defaultValue={feedback?.practice}
+                          rows={2}
+                        />
+                      </Field>
+                      <Field label="Visibility">
+                        <select
+                          name="status"
+                          defaultValue={feedback?.status || 'draft'}
+                        >
+                          <option value="draft">
+                            Private draft · teachers only
+                          </option>
+                          <option value="published">
+                            Publish to student and linked parents
+                          </option>
+                        </select>
+                      </Field>
+                      <p className="ws-muted">
+                        Saving a draft keeps the last published update visible
+                        to the family.
+                      </p>
+                    </SaveForm>
+                    {feedback && (
+                      <Action
+                        action="feedback_delete"
+                        values={{ lesson_id: lessonId, student_id: s.id }}
+                        confirm="Delete this feedback and withdraw its published family update?"
+                      >
+                        Delete and withdraw update
+                      </Action>
+                    )}
+                  </>
+                )}
+              </Modal>
+            </div>
+            {note && <p className="ws-note-snippet">{note}</p>}
+            {comments.length > 0 && (
+              <details className="ws-note-reflections">
+                <summary>Student reflections ({comments.length})</summary>
+                {comments.map((c) => (
+                  <article key={c.id}>
+                    <p className="preserve-lines">{c.body}</p>
+                    <small>{lessonDate(c.created_at)}</small>
+                  </article>
+                ))}
+              </details>
+            )}
+          </div>
+        );
+      })}
+    </section>
   );
 }

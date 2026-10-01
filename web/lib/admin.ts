@@ -65,7 +65,11 @@ export const adminWorkspaceData = cache(async (): Promise<AdminData> => {
     for (let offset = 0; ; offset += 1000) {
       let query = client.from(table).select(columns);
       for (const field of order)
-        query = query.order(field, { ascending: table !== 'admin_audit' });
+        query = query.order(field, {
+          ascending: !['admin_audit', 'student_password_changes'].includes(
+            table,
+          ),
+        });
       const result = await query.range(offset, offset + (cap ?? 1000) - 1);
       if (result.error) {
         unavailable.push(label);
@@ -89,6 +93,7 @@ export const adminWorkspaceData = cache(async (): Promise<AdminData> => {
     payments,
     expenses,
     audit,
+    passwordChanges,
   ] = await Promise.all([
     read(
       'accounts',
@@ -164,6 +169,13 @@ export const adminWorkspaceData = cache(async (): Promise<AdminData> => {
       'Finance history',
       200,
     ),
+    read(
+      'student_password_changes',
+      'id,student_id,changed_by,changed_by_role,created_at',
+      ['created_at', 'id'],
+      'Password history',
+      500,
+    ),
   ]);
   return {
     account: account!,
@@ -180,6 +192,7 @@ export const adminWorkspaceData = cache(async (): Promise<AdminData> => {
     payments,
     expenses,
     audit,
+    passwordChanges,
     unavailable,
   } as AdminData;
 });

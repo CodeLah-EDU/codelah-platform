@@ -20,19 +20,12 @@ export default async function ClassroomPage({
     !['admin', 'teacher', 'student'].includes(account.role)
   )
     notFound();
-  const [{ data: lesson }, { data: room }] = await Promise.all([
-    client
-      .from('lessons')
-      .select('id,title,starts_at,ends_at,status')
-      .eq('id', id)
-      .single(),
-    client
-      .from('lesson_video_rooms')
-      .select('lesson_id')
-      .eq('lesson_id', id)
-      .single(),
-  ]);
-  if (!lesson || !room) notFound();
+  const { data: lesson } = await client
+    .from('lessons')
+    .select('id,title,starts_at,ends_at,status')
+    .eq('id', id)
+    .single();
+  if (!lesson) notFound();
   const access = classroomWindow(lesson.starts_at, lesson.ends_at);
   return (
     <main id="main" className="account-shell classroom-page">
@@ -40,7 +33,15 @@ export default async function ClassroomPage({
         <Link className="wordmark" href="/dashboard">
           CodeLah<span>_</span>
         </Link>
-        <Link href={`/dashboard/lessons/${id}`}>← Lesson workspace</Link>
+        <Link
+          href={
+            account.role === 'admin'
+              ? `/dashboard/lessons/${id}`
+              : `/dashboard/calendar/${id}`
+          }
+        >
+          ← Back to class
+        </Link>
       </header>
       <p className="eyebrow">PRIVATE LIVE CLASSROOM</p>
       <h1>{lesson.title}</h1>
@@ -63,7 +64,7 @@ export default async function ClassroomPage({
           <p>Come back 15 minutes before the scheduled start time.</p>
         </section>
       ) : (
-        <DailyClassroom lessonId={id} />
+        <DailyClassroom lessonId={id} teacher={account.role !== 'student'} />
       )}
     </main>
   );

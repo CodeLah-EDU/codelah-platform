@@ -6,6 +6,7 @@ import {
   syncDailyRoom,
 } from '@/lib/daily';
 import { isId } from '@/lib/lessons';
+import { openLessonRoom } from '@/lib/supabase/classroom';
 import { supabaseServer } from '@/lib/supabase/server';
 
 function failed(message: string, status: number) {
@@ -42,13 +43,12 @@ export async function POST(request: Request) {
           .from('lesson_video_rooms')
           .select('room_name,room_url')
           .eq('lesson_id', lessonId)
-          .single(),
+          .maybeSingle(),
       ]);
     if (
       account?.status !== 'active' ||
       !['admin', 'teacher', 'student'].includes(account?.role ?? '') ||
-      !lesson ||
-      !room
+      !lesson
     )
       return failed('You do not have access to this classroom.', 403);
     if (lesson.status !== 'scheduled')
@@ -59,16 +59,23 @@ export async function POST(request: Request) {
     if (window === 'closed') return failed('This classroom has closed.', 409);
 
     const owner = account.role === 'admin' || account.role === 'teacher';
+    // The teacher's first visit opens the room, so nobody has to prepare it first.
+    if (!room && !owner)
+      return failed(
+        'Your teacher has not opened the classroom yet. Try again in a moment.',
+        409,
+      );
+    const classroom = room ?? (await openLessonRoom(client, user.id, lesson));
     await syncDailyRoom(lessonId, lesson.starts_at, lesson.ends_at);
     const token = await createDailyToken({
-      roomName: room.room_name,
+      roomName: classroom.room_name,
       userId: user.id,
       userName: account.display_name,
       owner,
       expiresAt:
         Math.floor(new Date(lesson.ends_at).getTime() / 1000) + 30 * 60,
     });
-    return Response.json({ roomUrl: room.room_url, token });
+    return Response.json({ roomUrl: classroom.room_url, token });
   } catch {
     return failed('We could not open the classroom. Please try again.', 500);
   }

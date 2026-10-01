@@ -1730,3 +1730,23 @@
     scroll-behavior: auto !important;
   }
 }
+
+.ops-password-history {
+  padding: 16px 24px 24px;
+  border-top: 1px solid var(--ops-line, #e3e6dc);
+  font-size: 13px;
+}
+.ops-password-history h3 {
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+.ops-password-history ul {
+  display: grid;
+  gap: 6px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.ops-password-history p {
+  color: #687062;
+}

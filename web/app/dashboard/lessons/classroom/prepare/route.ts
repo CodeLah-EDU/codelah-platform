@@ -1,6 +1,7 @@
 import { formText, safeOrigin } from '@/lib/accounts';
-import { createDailyRoom, dailyConfigured, deleteDailyRoom } from '@/lib/daily';
+import { dailyConfigured } from '@/lib/daily';
 import { isId } from '@/lib/lessons';
+import { openLessonRoom } from '@/lib/supabase/classroom';
 import { supabaseServer } from '@/lib/supabase/server';
 
 export async function POST(request: Request) {
@@ -51,26 +52,7 @@ export async function POST(request: Request) {
       return finish();
     if (existing) return finish(true);
 
-    const room = await createDailyRoom(
-      lesson.id,
-      lesson.starts_at,
-      lesson.ends_at,
-    );
-    const inserted = await client
-      .from('lesson_video_rooms')
-      .insert({
-        lesson_id: lesson.id,
-        provider: 'daily',
-        room_name: room.name,
-        room_url: room.url,
-        created_by: user.id,
-      })
-      .select('lesson_id')
-      .single();
-    if (inserted.error || !inserted.data) {
-      await deleteDailyRoom(room.name).catch(() => undefined);
-      return finish();
-    }
+    await openLessonRoom(client, user.id, lesson);
     return finish(true);
   } catch {
     return finish();

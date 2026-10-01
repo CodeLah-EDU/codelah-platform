@@ -148,63 +148,43 @@ export function HomeView() {
           )}
         </section>
       </div>
-      <div className="ws-stat-grid">
-        {(teacher
-          ? [
-              {
-                label: 'Upcoming classes',
-                value: upcoming.length,
-                icon: CalendarDays,
-                link: 'calendar',
-              },
-              {
-                label: 'Worksheets in library',
-                value: data.worksheets.length,
-                icon: Files,
-                link: 'worksheets',
-              },
-              {
-                label: 'Published class updates',
-                value: data.reports.length,
-                icon: CheckCircle2,
-                link: 'students',
-              },
-            ]
-          : [
-              {
-                label: 'Upcoming classes',
-                value: upcoming.length,
-                icon: CalendarDays,
-                link: 'calendar',
-              },
-              {
-                label: 'Objectives completed',
-                value: completed,
-                icon: CheckCircle2,
-                link: parent ? `students/${studentId}/objectives` : 'progress',
-              },
-              {
-                label: parent
-                  ? 'Saved student files'
-                  : 'Worksheets ready for you',
-                value: parent
-                  ? data.files.filter((f) => f.student_id === studentId).length
-                  : unlocked,
-                icon: parent ? FolderOpen : Files,
-                link: parent ? `students/${studentId}/timeline` : 'worksheets',
-              },
-            ]
-        ).map((stat) => (
-          <Link key={stat.label} href={href(stat.link)} className="ws-stat">
-            <stat.icon size={22} />
-            <div>
-              <strong>{stat.value}</strong>
-              <span>{stat.label}</span>
-            </div>
-            <ArrowUpRight size={18} />
-          </Link>
-        ))}
-      </div>
+      {!teacher && (
+        <div className="ws-stat-grid">
+          {[
+            {
+              label: 'Upcoming classes',
+              value: upcoming.length,
+              icon: CalendarDays,
+              link: 'calendar',
+            },
+            {
+              label: 'Objectives completed',
+              value: completed,
+              icon: CheckCircle2,
+              link: parent ? `students/${studentId}/objectives` : 'progress',
+            },
+            {
+              label: parent
+                ? 'Saved student files'
+                : 'Worksheets ready for you',
+              value: parent
+                ? data.files.filter((f) => f.student_id === studentId).length
+                : unlocked,
+              icon: parent ? FolderOpen : Files,
+              link: parent ? `students/${studentId}/timeline` : 'worksheets',
+            },
+          ].map((stat) => (
+            <Link key={stat.label} href={href(stat.link)} className="ws-stat">
+              <stat.icon size={22} />
+              <div>
+                <strong>{stat.value}</strong>
+                <span>{stat.label}</span>
+              </div>
+              <ArrowUpRight size={18} />
+            </Link>
+          ))}
+        </div>
+      )}
       <div className="ws-two-col">
         <section className="ws-panel">
           <div className="ws-section-heading">

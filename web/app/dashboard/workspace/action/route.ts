@@ -1,4 +1,4 @@
-import { formText, safeOrigin } from '@/lib/accounts';
+import { formText, passwordError, safeOrigin } from '@/lib/accounts';
 import { isId, lessonTimes, scheduledLessonTimes } from '@/lib/lessons';
 import { cleanTags } from '@/lib/workspace';
 import { validateLessonFile, MAX_LESSON_FILE_BYTES } from '@/lib/lesson-files';
@@ -48,6 +48,30 @@ export async function POST(request: Request) {
         { error: 'Your account is not active.' },
         { status: 403 },
       );
+    if (action === 'student_password') {
+      if (account.role !== 'parent')
+        return Response.json(
+          { error: 'You cannot change this record.' },
+          { status: 403 },
+        );
+      // Not trimmed: spaces are allowed in passwords.
+      const password = formText(form, 'password');
+      if (passwordError(password))
+        throw new Error('Use a password with 12–128 characters.');
+      const result = await client.functions.invoke('student-accounts', {
+        body: {
+          action: 'reset_password',
+          student_id: id('student_id'),
+          password,
+        },
+      });
+      if (result.error)
+        throw new Error('The password could not be changed. Try again.');
+      return Response.json(
+        { ok: true },
+        { headers: { 'Cache-Control': 'no-store' } },
+      );
+    }
     const teacher = ['teacher', 'admin'].includes(account.role);
     const studentActions = [
       'comment_save',
