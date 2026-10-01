@@ -14,27 +14,60 @@ type JoinResponse = { roomUrl?: string; token?: string; error?: string };
 export type ChatMessage = {
   id: string;
   from: string;
+  teacher: boolean;
   text: string;
   at: number;
 };
-type ChatPacket = { type: 'chat'; message: ChatMessage };
+// 'chat' is a live message from its sender; 'chat-history' is a teacher replaying
+// earlier messages to someone who joined late.
+type ChatPacket = {
+  type: 'chat' | 'chat-history';
+  message: ChatMessage;
+};
+type Sender = { user_name?: string; owner?: boolean };
 
 export const CHAT_MESSAGE_LIMIT = 1000;
 const noSubscription = () => () => {};
 
 // Chat travels as Daily app messages, so it lasts as long as the call and is never stored.
-export function readChatPacket(value: unknown): ChatMessage[] {
+// Names and the teacher badge come from Daily's participant record, which is set by the
+// server-issued meeting token, so nobody can post under another person's name.
+export function readChatPacket(
+  value: unknown,
+  sender: Sender | undefined,
+): ChatMessage | null {
   const packet = value as ChatPacket | null;
-  const list = packet?.type === 'chat' ? [packet.message] : [];
-  return list.filter(
-    (m): m is ChatMessage =>
-      typeof m?.id === 'string' &&
-      typeof m.from === 'string' &&
-      typeof m.text === 'string' &&
-      typeof m.at === 'number' &&
-      m.text.length > 0 &&
-      m.text.length <= CHAT_MESSAGE_LIMIT,
-  );
+  const m = packet?.message;
+  if (
+    !sender ||
+    typeof m?.id !== 'string' ||
+    typeof m.text !== 'string' ||
+    typeof m.at !== 'number' ||
+    !m.text.length ||
+    m.text.length > CHAT_MESSAGE_LIMIT
+  )
+    return null;
+  if (packet?.type === 'chat')
+    return {
+      id: m.id,
+      from: sender.user_name || 'Classmate',
+      teacher: Boolean(sender.owner),
+      text: m.text,
+      at: m.at,
+    };
+  if (
+    packet?.type === 'chat-history' &&
+    sender.owner &&
+    typeof m.from === 'string'
+  )
+    return {
+      id: m.id,
+      from: m.from,
+      teacher: Boolean(m.teacher),
+      text: m.text,
+      at: m.at,
+    };
+  return null;
 }
 
 export function addChatMessages(
@@ -110,18 +143,18 @@ export function DailyClassroom({
         setState('ready');
       });
       instance.on('app-message', (event) => {
-        // Only the teacher (a room owner) may post; ignore anything else.
         const sender = event?.fromId
           ? instance.participants()[event.fromId]
           : undefined;
-        if (sender?.owner) receive(readChatPacket(event?.data));
+        const message = readChatPacket(event?.data, sender);
+        if (message) receive([message]);
       });
       instance.on('participant-joined', (event) => {
         const id = event?.participant.session_id;
         // Catch latecomers up one message at a time (Daily caps each packet at 4 KB).
         if (teacher && id)
           for (const message of messagesRef.current.slice(-50))
-            instance.sendAppMessage({ type: 'chat', message }, id);
+            instance.sendAppMessage({ type: 'chat-history', message }, id);
       });
       await instance.join({ url: result.roomUrl, token: result.token });
       setState('joined');
@@ -145,7 +178,8 @@ export function DailyClassroom({
     if (!text || !call.current) return;
     const message: ChatMessage = {
       id: crypto.randomUUID(),
-      from: call.current.participants().local?.user_name || 'Teacher',
+      from: call.current.participants().local?.user_name || 'You',
+      teacher,
       text: text.slice(0, CHAT_MESSAGE_LIMIT),
       at: Date.now(),
     };
@@ -246,9 +280,13 @@ export function DailyClassroom({
             <ol aria-live="polite">
               {messages.length ? (
                 messages.map((m) => (
-                  <li key={m.id}>
+                  <li
+                    key={m.id}
+                    className={m.teacher ? 'from-teacher' : undefined}
+                  >
                     <small>
-                      {m.from} ·{' '}
+                      {m.from}
+                      {m.teacher && ' (teacher)'} ·{' '}
                       {new Date(m.at).toLocaleTimeString('en-SG', {
                         hour: 'numeric',
                         minute: '2-digit',
@@ -267,34 +305,32 @@ export function DailyClassroom({
                 <li className="classroom-chat-empty">
                   {teacher
                     ? 'Share instructions, links or code with the class.'
-                    : 'Messages from your teacher will appear here.'}
+                    : 'Ask a question or share something with the class.'}
                 </li>
               )}
             </ol>
-            {teacher && (
-              <form onSubmit={send}>
-                <label htmlFor="classroom-message" className="sr-only">
-                  Message to the class
-                </label>
-                <textarea
-                  id="classroom-message"
-                  name="message"
-                  rows={3}
-                  maxLength={CHAT_MESSAGE_LIMIT}
-                  placeholder="Message the class"
-                  required
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      e.currentTarget.form?.requestSubmit();
-                    }
-                  }}
-                />
-                <button type="submit" className="button primary">
-                  <Send size={16} /> Send
-                </button>
-              </form>
-            )}
+            <form onSubmit={send}>
+              <label htmlFor="classroom-message" className="sr-only">
+                Message to the class
+              </label>
+              <textarea
+                id="classroom-message"
+                name="message"
+                rows={3}
+                maxLength={CHAT_MESSAGE_LIMIT}
+                placeholder="Message the class"
+                required
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    e.currentTarget.form?.requestSubmit();
+                  }
+                }}
+              />
+              <button type="submit" className="button primary">
+                <Send size={16} /> Send
+              </button>
+            </form>
           </aside>
         )}
       </div>

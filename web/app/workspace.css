@@ -507,7 +507,8 @@
   max-width: 120px;
   color: #596451;
 }
-.ws-home-grid + .ws-two-col {
+.ws-home-grid + .ws-two-col,
+.ws-home-grid + .ws-home-single {
   margin-top: 24px;
 }
 .ws-stat-grid {

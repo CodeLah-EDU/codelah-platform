@@ -185,7 +185,7 @@ export function HomeView() {
           ))}
         </div>
       )}
-      <div className="ws-two-col">
+      <div className={teacher ? 'ws-home-single' : 'ws-two-col'}>
         <section className="ws-panel">
           <div className="ws-section-heading">
             <h2>Coming up</h2>
@@ -227,34 +227,36 @@ export function HomeView() {
             </Empty>
           )}
         </section>
-        <section className="ws-panel">
-          <div className="ws-section-heading">
-            <h2>Latest class notes</h2>
-            <span className="ws-caption">FROM YOUR TEACHER</span>
-          </div>
-          {reports.length ? (
-            reports.map((report) => (
-              <Link
-                href={href(`calendar/${report.lesson_id}`)}
-                key={`${report.lesson_id}-${report.student_id}`}
-                className="ws-note-preview"
-              >
-                <span>
-                  {data.lessons.find((l) => l.id === report.lesson_id)?.title ||
-                    'Class update'}
-                </span>
-                <p>{report.note}</p>
-                <small>
-                  {lessonDate(report.published_at)} <ArrowUpRight size={14} />
-                </small>
-              </Link>
-            ))
-          ) : (
-            <Empty title="Every class tells a story">
-              Published teacher notes will be saved here.
-            </Empty>
-          )}
-        </section>
+        {!teacher && (
+          <section className="ws-panel">
+            <div className="ws-section-heading">
+              <h2>Latest class notes</h2>
+              <span className="ws-caption">FROM YOUR TEACHER</span>
+            </div>
+            {reports.length ? (
+              reports.map((report) => (
+                <Link
+                  href={href(`calendar/${report.lesson_id}`)}
+                  key={`${report.lesson_id}-${report.student_id}`}
+                  className="ws-note-preview"
+                >
+                  <span>
+                    {data.lessons.find((l) => l.id === report.lesson_id)
+                      ?.title || 'Class update'}
+                  </span>
+                  <p>{report.note}</p>
+                  <small>
+                    {lessonDate(report.published_at)} <ArrowUpRight size={14} />
+                  </small>
+                </Link>
+              ))
+            ) : (
+              <Empty title="Every class tells a story">
+                Published teacher notes will be saved here.
+              </Empty>
+            )}
+          </section>
+        )}
       </div>
     </>
   );

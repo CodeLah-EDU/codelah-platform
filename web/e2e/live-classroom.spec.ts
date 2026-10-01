@@ -208,7 +208,7 @@ test('five people share one Daily classroom with the right permissions', async (
   }
 
   try {
-    const students = [];
+    const students: { id: string; username: string; name: string }[] = [];
     for (const n of [1, 2, 3, 4])
       students.push(await fixture('student', `s${n}`));
     const teacher = await fixture('teacher', 'teacher'),
@@ -289,13 +289,15 @@ test('five people share one Daily classroom with the right permissions', async (
 
     const chat = (page: Page) =>
       page.getByRole('complementary', { name: 'Class chat' });
-    const sendChat = async (text: string) => {
-      await chat(t.page).getByLabel('Message to the class').fill(text);
-      await chat(t.page).getByRole('button', { name: 'Send' }).click();
-      await expect(chat(t.page).getByText(text)).toBeVisible();
+    const sendChat = async (page: Page, text: string) => {
+      await chat(page).getByLabel('Message to the class').fill(text);
+      await chat(page).getByRole('button', { name: 'Send' }).click();
+      await expect(chat(page).getByText(text)).toBeVisible();
     };
+    const chatItem = (page: Page, text: string) =>
+      chat(page).getByRole('listitem').filter({ hasText: text });
     // Sent before anyone else arrives, so students must receive it as catch-up.
-    await sendChat(`print("early ${suffix}")`);
+    await sendChat(t.page, `print("early ${suffix}")`);
 
     const studentPages: Page[] = [];
     const studentFrames: FrameLocator[] = [];
@@ -322,15 +324,22 @@ test('five people share one Daily classroom with the right permissions', async (
         ).toHaveCount(0);
     });
 
-    await test.step('the teacher chat reaches every student', async () => {
-      await sendChat(`live note ${suffix}`);
-      for (const page of studentPages) {
-        await expect(
-          chat(page).getByText(`print("early ${suffix}")`),
-        ).toBeVisible();
-        await expect(chat(page).getByText(`live note ${suffix}`)).toBeVisible();
-        await expect(chat(page).getByLabel('Message to the class')).toHaveCount(
-          0,
+    await test.step('everyone can chat, under their own name', async () => {
+      await sendChat(t.page, `live note ${suffix}`);
+      await sendChat(studentPages[1], `question ${suffix}`);
+      for (const page of [t.page, ...studentPages]) {
+        // The early message arrived as catch-up but keeps the teacher's name.
+        await expect(chatItem(page, `print("early ${suffix}")`)).toContainText(
+          `${teacher.name} (teacher)`,
+        );
+        await expect(chatItem(page, `live note ${suffix}`)).toContainText(
+          `${teacher.name} (teacher)`,
+        );
+        await expect(chatItem(page, `question ${suffix}`)).toContainText(
+          students[1].name,
+        );
+        await expect(chatItem(page, `question ${suffix}`)).not.toContainText(
+          '(teacher)',
         );
       }
     });
