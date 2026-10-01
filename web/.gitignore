@@ -46,3 +46,6 @@ next-env.d.ts
 # Browser test artifacts
 /test-results/
 /playwright-report/
+
+# Saved Playwright admin sessions (local only)
+/.auth/

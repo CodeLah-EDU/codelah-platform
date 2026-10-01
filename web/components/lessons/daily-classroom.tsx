@@ -85,7 +85,8 @@ export function DailyClassroom({ lessonId }: { lessonId: string }) {
       )}
       <div
         ref={container}
-        className={state === 'joined' ? 'daily-frame' : 'daily-frame empty'}
+        // Visible while joining too: Daily's pre-join device check renders inside it.
+        className={state === 'ready' ? 'daily-frame empty' : 'daily-frame'}
       />
     </section>
   );
