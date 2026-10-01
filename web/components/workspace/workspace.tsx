@@ -11,6 +11,7 @@ import {
   FolderOpen,
   Code2,
   Users,
+  School,
   LogOut,
   Menu,
   ArrowUpRight,
@@ -23,6 +24,7 @@ import { WorksheetLibrary } from './worksheets';
 import { CalendarView, LessonView } from './calendar';
 import { StudentDirectory, StudentView, ProgressView } from './students';
 import { FilesView, PractiseView } from './files';
+import { ClassesView, ClassView } from './classes';
 import { TypewriterLogo } from '@/components/brand/typewriter-logo';
 
 const icons = {
@@ -33,6 +35,7 @@ const icons = {
   files: FolderOpen,
   practise: Code2,
   students: Users,
+  classes: School,
 };
 const labels: Record<string, string> = {
   home: 'Home',
@@ -42,6 +45,7 @@ const labels: Record<string, string> = {
   files: 'Files',
   practise: 'Practise',
   students: 'Students',
+  classes: 'Classes',
 };
 
 export function Workspace({
@@ -278,6 +282,8 @@ export function Workspace({
           {selected === 'progress' && <ProgressView student={studentId} />}
           {selected === 'calendar' &&
             (path[1] ? <LessonView id={path[1]} /> : <CalendarView />)}
+          {selected === 'classes' &&
+            (path[1] ? <ClassView id={path[1]} /> : <ClassesView />)}
           {selected === 'files' && <FilesView />}
           {selected === 'practise' && <PractiseView />}
           {selected === 'students' &&

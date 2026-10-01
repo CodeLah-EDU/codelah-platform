@@ -191,7 +191,9 @@ export function workspacePreview(
     ],
     enrolments: linked.map((student_id) => ({
       student_id,
-      classroom_id: 'class-python',
+      classroom_id: ['aarav', 'leo'].includes(student_id)
+        ? 'class-builders'
+        : 'class-python',
       active: true,
     })),
     parents: ['parent', 'parent-two'].flatMap((parent_id) =>
@@ -279,7 +281,7 @@ export function workspacePreview(
     objectives,
     studentCourses: linked.map((student_id) => ({
       student_id,
-      course_id: 'python',
+      course_id: student_id === 'aarav' ? 'web' : 'python',
     })),
     progress: objectives.slice(0, 3).map((o) => ({
       objective_id: o.id,

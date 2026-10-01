@@ -445,10 +445,14 @@
   max-width: 420px;
 }
 .ws-next-date {
-  font-size: 14px;
-  color: #d1decc;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #c6f568;
 }
 .ws-next-date span {
+  font-weight: 500;
+  color: #e6f5c4;
   white-space: nowrap;
 }
 .ws-next-footer {
@@ -2108,4 +2112,100 @@
 .ws-calendar-event .ws-capacity,
 .ws-roster-mini a {
   font-size: 12px;
+}
+
+/* Teacher classes */
+.ws-class-courses {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0;
+}
+.ws-home-classes {
+  display: flex;
+  flex-direction: column;
+  padding: 26px 28px;
+}
+.ws-home-classes .ws-section-heading {
+  margin-bottom: 8px;
+}
+.ws-home-class {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--ws-border);
+}
+.ws-home-class strong {
+  font-size: 16px;
+  font-weight: 600;
+}
+.ws-home-class .ws-class-courses {
+  margin: 6px 0 4px;
+}
+.ws-home-class small {
+  display: block;
+  color: #596451;
+  font-size: 13px;
+}
+.ws-home-class:hover strong,
+.ws-class-card:hover h2 {
+  text-decoration: underline;
+}
+.ws-home-classes > .ws-text-link {
+  margin-top: auto;
+  padding-top: 12px;
+}
+.ws-class-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+.ws-class-card {
+  display: flex;
+  flex-direction: column;
+  color: inherit;
+}
+.ws-class-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.ws-class-card-head h2 {
+  flex: 1;
+  font-size: 20px;
+}
+.ws-class-count {
+  font-size: 13px;
+  color: #596451;
+  margin: 4px 0 6px;
+}
+.ws-class-students {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 12px;
+  display: grid;
+  gap: 8px;
+}
+.ws-class-students .ws-avatar {
+  width: 30px;
+  height: 30px;
+  font-size: 11px;
+}
+.ws-class-next {
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--ws-border);
+  font-size: 13px;
+  color: #315e4d;
+}
+.ws-class-student {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+.ws-class-detail .ws-lesson-row h3 {
+  font-size: 15px;
+}
+.ws-class-detail .ws-lesson-row p {
+  font-size: 13px;
+  color: #596451;
 }

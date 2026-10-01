@@ -11,6 +11,7 @@ import {
 import { studentLessons, worksheetAvailable } from '@/lib/workspace';
 import { lessonDate, lessonTime } from '@/lib/lessons';
 import { useStudio, Title, Tag, Empty } from './ui';
+import { ClassesSummary } from './classes';
 
 export function HomeView() {
   const { data, teacher, studentId, href, now } = useStudio();
@@ -40,7 +41,6 @@ export function HomeView() {
   const unlocked = data.worksheets.filter((w) =>
     worksheetAvailable(data, w, studentId),
   ).length;
-  const students = data.people.filter((p) => p.role === 'student');
   const reports = data.reports
     .filter((r) => !studentId || r.student_id === studentId)
     .slice(0, 3);
@@ -48,7 +48,7 @@ export function HomeView() {
     <>
       <Title title={`Hello, ${data.account.display_name.split(' ')[0]}.`}>
         {teacher
-          ? 'A little planning. A lot of room to grow.'
+          ? null
           : parent
             ? `Follow ${student?.display_name || 'your child'}’s learning, one class at a time.`
             : 'Your next idea starts here. Let’s keep building.'}
@@ -100,53 +100,35 @@ export function HomeView() {
             </>
           )}
         </section>
-        <section className="ws-panel ws-home-progress">
-          <span className="ws-caption">
-            {teacher ? 'YOUR TEACHING SPACE' : 'SMALL STEPS, REAL PROGRESS'}
-          </span>
-          <h2>
-            {teacher ? 'Ready for a good week.' : 'Look how far you’ve come.'}
-          </h2>
-          {teacher ? (
-            <>
-              <div className="ws-big-number">
-                {students.length}
-                <span>students learning with you</span>
-              </div>
-              <p>
-                {data.classrooms.length} assigned classes · Up to 4 students per
-                lesson
-              </p>
-              <Link className="ws-text-link" href={href('students')}>
-                View your students <ArrowRight size={18} />
-              </Link>
-            </>
-          ) : (
-            <>
-              <div className="ws-progress-track">
-                <span
-                  style={{
-                    width: `${objectives.length ? (completed / objectives.length) * 100 : 0}%`,
-                  }}
-                />
-              </div>
-              <p>
-                <strong>
-                  {completed} of {objectives.length}
-                </strong>{' '}
-                learning objectives completed
-              </p>
-              <Link
-                className="ws-text-link"
-                href={href(
-                  parent ? `students/${studentId}/objectives` : 'progress',
-                )}
-              >
-                Explore progress <ArrowRight size={18} />
-              </Link>
-            </>
-          )}
-        </section>
+        {teacher ? (
+          <ClassesSummary />
+        ) : (
+          <section className="ws-panel ws-home-progress">
+            <span className="ws-caption">SMALL STEPS, REAL PROGRESS</span>
+            <h2>Look how far you’ve come.</h2>
+            <div className="ws-progress-track">
+              <span
+                style={{
+                  width: `${objectives.length ? (completed / objectives.length) * 100 : 0}%`,
+                }}
+              />
+            </div>
+            <p>
+              <strong>
+                {completed} of {objectives.length}
+              </strong>{' '}
+              learning objectives completed
+            </p>
+            <Link
+              className="ws-text-link"
+              href={href(
+                parent ? `students/${studentId}/objectives` : 'progress',
+              )}
+            >
+              Explore progress <ArrowRight size={18} />
+            </Link>
+          </section>
+        )}
       </div>
       {!teacher && (
         <div className="ws-stat-grid">

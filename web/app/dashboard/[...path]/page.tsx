@@ -20,7 +20,12 @@ export default async function WorkspacePage({
   const { child } = await searchParams;
   if (!sections[account.role].includes(path[0]) || path.length > 3) notFound();
   if (
-    path.length > (path[0] === 'students' ? 3 : path[0] === 'calendar' ? 2 : 1)
+    path.length >
+    (path[0] === 'students'
+      ? 3
+      : ['calendar', 'classes'].includes(path[0])
+        ? 2
+        : 1)
   )
     notFound();
   if (
@@ -46,6 +51,12 @@ export default async function WorkspacePage({
     path[0] === 'calendar' &&
     path[1] &&
     !data.lessons.some((l) => l.id === path[1])
+  )
+    notFound();
+  if (
+    path[0] === 'classes' &&
+    path[1] &&
+    !data.classrooms.some((c) => c.id === path[1])
   )
     notFound();
   return (

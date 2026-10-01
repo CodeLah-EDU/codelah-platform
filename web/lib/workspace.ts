@@ -103,9 +103,38 @@ export type WorkspaceData = {
 };
 export const sections = {
   student: ['home', 'worksheets', 'progress', 'calendar', 'files', 'practise'],
-  teacher: ['home', 'calendar', 'students', 'worksheets'],
+  teacher: ['home', 'classes', 'calendar', 'students', 'worksheets'],
   parent: ['home', 'calendar', 'students'],
 };
+// Active students enrolled in a class, in name order.
+export function classStudents(data: WorkspaceData, classId: string) {
+  return data.people
+    .filter(
+      (p) =>
+        p.role === 'student' &&
+        data.enrolments.some(
+          (e) =>
+            e.classroom_id === classId && e.student_id === p.id && e.active,
+        ),
+    )
+    .sort((a, b) => a.display_name.localeCompare(b.display_name));
+}
+export function studentCourseNames(data: WorkspaceData, studentId: string) {
+  return data.studentCourses
+    .filter((c) => c.student_id === studentId)
+    .map((c) => data.courses.find((course) => course.id === c.course_id)?.name)
+    .filter((name): name is string => Boolean(name));
+}
+// A class's courses are the courses its students are taking.
+export function classCourseNames(data: WorkspaceData, classId: string) {
+  return [
+    ...new Set(
+      classStudents(data, classId).flatMap((s) =>
+        studentCourseNames(data, s.id),
+      ),
+    ),
+  ].sort();
+}
 export function singaporeDay(value: string) {
   return new Date(new Date(value).valueOf() + 8 * 3600000)
     .toISOString()

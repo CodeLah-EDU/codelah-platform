@@ -43,9 +43,7 @@ export function StudentDirectory() {
   );
   return (
     <>
-      <Title title="Students">
-        A clear picture of every learner, all in one place.
-      </Title>
+      <Title title="Students" />
       <div className="ws-library-toolbar">
         <label className="ws-search">
           <Search size={19} />
@@ -192,9 +190,7 @@ export function StudentView({ id, tab }: { id?: string; tab: string }) {
           )
         }
       >
-        {teacher
-          ? 'One learner. Every part of their journey.'
-          : 'Your child’s classes, progress, and teacher updates.'}
+        {!teacher && 'Your child’s classes, progress, and teacher updates.'}
       </Title>
       <nav className="ws-tabs" aria-label="Student record">
         {tabs.map(([key, label]) => (
