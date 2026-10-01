@@ -1,14 +1,7 @@
 'use client';
 import Link from 'next/link';
-import {
-  ArrowRight,
-  ArrowUpRight,
-  CalendarDays,
-  CheckCircle2,
-  Files,
-  FolderOpen,
-} from 'lucide-react';
-import { studentLessons, worksheetAvailable } from '@/lib/workspace';
+import { ArrowRight, ArrowUpRight, CalendarDays } from 'lucide-react';
+import { studentLessons } from '@/lib/workspace';
 import { lessonDate, lessonTime } from '@/lib/lessons';
 import { useStudio, Title, Tag, Empty } from './ui';
 import { ClassesSummary } from './classes';
@@ -16,7 +9,6 @@ import { ClassesSummary } from './classes';
 export function HomeView() {
   const { data, teacher, studentId, href, now } = useStudio();
   const parent = data.account.role === 'parent';
-  const student = data.people.find((p) => p.id === studentId);
   const lessons = studentLessons(data, studentId);
   const upcoming = lessons
     .filter(
@@ -38,21 +30,12 @@ export function HomeView() {
       (p) => p.student_id === studentId && p.objective_id === o.id,
     ),
   ).length;
-  const unlocked = data.worksheets.filter((w) =>
-    worksheetAvailable(data, w, studentId),
-  ).length;
   const reports = data.reports
     .filter((r) => !studentId || r.student_id === studentId)
     .slice(0, 3);
   return (
     <>
-      <Title title={`Hello, ${data.account.display_name.split(' ')[0]}.`}>
-        {teacher
-          ? null
-          : parent
-            ? `Follow ${student?.display_name || 'your child'}’s learning, one class at a time.`
-            : 'Your next idea starts here. Let’s keep building.'}
-      </Title>
+      <Title title={`Hello, ${data.account.display_name.split(' ')[0]}.`} />
       <div className="ws-home-grid">
         <section className="ws-next-card">
           <div className="ws-section-heading">
@@ -81,15 +64,11 @@ export function HomeView() {
             </>
           ) : (
             <>
-              <h2>
-                Your next chapter
-                <br />
-                is on its way.
-              </h2>
+              <h2>No class scheduled yet</h2>
               <p>
                 {teacher
                   ? 'Schedule a class and bring your students together.'
-                  : 'Your next class will appear here once it is scheduled.'}
+                  : 'Your next class will show here.'}
               </p>
               <Link className="ws-button lime" href={href('calendar')}>
                 Open calendar <ArrowUpRight size={19} />
@@ -101,8 +80,7 @@ export function HomeView() {
           <ClassesSummary />
         ) : (
           <section className="ws-panel ws-home-progress">
-            <span className="ws-caption">SMALL STEPS, REAL PROGRESS</span>
-            <h2>Look how far you’ve come.</h2>
+            <h2>Progress</h2>
             <div className="ws-progress-track">
               <span
                 style={{
@@ -122,48 +100,11 @@ export function HomeView() {
                 parent ? `students/${studentId}/objectives` : 'progress',
               )}
             >
-              Explore progress <ArrowRight size={18} />
+              View progress <ArrowRight size={18} />
             </Link>
           </section>
         )}
       </div>
-      {!teacher && (
-        <div className="ws-stat-grid">
-          {[
-            {
-              label: 'Upcoming classes',
-              value: upcoming.length,
-              icon: CalendarDays,
-              link: 'calendar',
-            },
-            {
-              label: 'Objectives completed',
-              value: completed,
-              icon: CheckCircle2,
-              link: parent ? `students/${studentId}/objectives` : 'progress',
-            },
-            {
-              label: parent
-                ? 'Saved student files'
-                : 'Worksheets ready for you',
-              value: parent
-                ? data.files.filter((f) => f.student_id === studentId).length
-                : unlocked,
-              icon: parent ? FolderOpen : Files,
-              link: parent ? `students/${studentId}/timeline` : 'worksheets',
-            },
-          ].map((stat) => (
-            <Link key={stat.label} href={href(stat.link)} className="ws-stat">
-              <stat.icon size={22} />
-              <div>
-                <strong>{stat.value}</strong>
-                <span>{stat.label}</span>
-              </div>
-              <ArrowUpRight size={18} />
-            </Link>
-          ))}
-        </div>
-      )}
       <div className={teacher ? 'ws-home-single' : 'ws-two-col'}>
         <section className="ws-panel">
           <div className="ws-section-heading">
@@ -201,16 +142,13 @@ export function HomeView() {
               </Link>
             ))
           ) : (
-            <Empty title="A little space in your calendar">
-              New classes will appear here.
-            </Empty>
+            <Empty title="No upcoming classes" />
           )}
         </section>
         {!teacher && (
           <section className="ws-panel">
             <div className="ws-section-heading">
-              <h2>Latest class notes</h2>
-              <span className="ws-caption">FROM YOUR TEACHER</span>
+              <h2>Teacher notes</h2>
             </div>
             {reports.length ? (
               reports.map((report) => (
@@ -230,9 +168,7 @@ export function HomeView() {
                 </Link>
               ))
             ) : (
-              <Empty title="Every class tells a story">
-                Published teacher notes will be saved here.
-              </Empty>
+              <Empty title="No teacher notes yet" />
             )}
           </section>
         )}

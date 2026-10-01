@@ -1,5 +1,4 @@
 'use client';
-import Image from 'next/image';
 import { useState, useTransition } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -213,19 +212,6 @@ export function Workspace({
             )}
           </div>
           <div className="ws-sidebar-bottom">
-            <div className="ws-grow-note">
-              <Image
-                unoptimized
-                src="/brand/codelah-vine.svg"
-                alt=""
-                width={66}
-                height={150}
-              />
-              <p>
-                A little code.
-                <br />A lot of room to grow.
-              </p>
-            </div>
             <Link href="/auth/password">
               Account settings <ArrowUpRight size={16} />
             </Link>

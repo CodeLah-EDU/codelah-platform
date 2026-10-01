@@ -189,9 +189,7 @@ export function StudentView({ id, tab }: { id?: string; tab: string }) {
             </Modal>
           )
         }
-      >
-        {!teacher && 'Your child’s classes, progress, and teacher updates.'}
-      </Title>
+      />
       <nav className="ws-tabs" aria-label="Student record">
         {tabs.map(([key, label]) => (
           <Link
@@ -472,12 +470,7 @@ function Overview({ studentId }: { studentId: string }) {
       </div>
       <section className="ws-panel">
         <div className="ws-section-heading">
-          <div>
-            <h2>Payment information</h2>
-            <p className="ws-muted">
-              Payment records maintained by your teacher.
-            </p>
-          </div>
+          <h2>Payments</h2>
           {teacher && (
             <Modal
               title="Record a payment"
@@ -631,7 +624,7 @@ function Timeline({ studentId }: { studentId: string }) {
                       )}
                     </div>
                   ) : (
-                    <p className="ws-muted">No published teacher update yet.</p>
+                    <p className="ws-muted">No teacher update yet.</p>
                   )}
                   {data.comments
                     .filter(
@@ -874,11 +867,7 @@ export function ProgressView({
   );
   return (
     <>
-      {!embedded && (
-        <Title title="Progress">
-          See what you’ve learned. Discover what comes next.
-        </Title>
-      )}
+      {!embedded && <Title title="Progress" />}
       {teacher && (
         <div className="ws-section-heading">
           <h2>Learning objectives</h2>

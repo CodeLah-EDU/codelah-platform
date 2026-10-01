@@ -249,11 +249,7 @@ export function CalendarView({
               </Modal>
             )
           }
-        >
-          {teacher
-            ? 'Plan your classes. Bring the right students together.'
-            : 'Your learning week, with a little room to look ahead.'}
-        </Title>
+        />
       )}
       <div
         className={`ws-calendar-layout ${teacher && !target ? 'with-assignment' : ''}`}
@@ -477,10 +473,7 @@ export function LessonView({ id }: { id: string }) {
             {data.classrooms.find((c) => c.id === lesson.classroom_id)?.name ||
               'Your class'}
           </strong>
-          <p>
-            {lesson.objective ||
-              'Your teacher will add the learning objective here.'}
-          </p>
+          {lesson.objective && <p>{lesson.objective}</p>}
         </div>
         <Tag tone={lesson.status === 'scheduled' ? 'upcoming' : ''}>
           {lesson.status}
@@ -630,7 +623,7 @@ export function LessonView({ id }: { id: string }) {
                 label={
                   teacher
                     ? 'Class resource (up to 10 MB)'
-                    : 'Python file or other project work (up to 10 MB)'
+                    : 'Your file (up to 10 MB)'
                 }
               >
                 <input

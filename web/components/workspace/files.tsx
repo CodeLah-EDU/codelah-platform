@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { ArrowUpRight, FolderOpen, Search } from 'lucide-react';
 import { studentLessons } from '@/lib/workspace';
 import { lessonDate } from '@/lib/lessons';
-import { Empty, FileRow, Tag, Title, useStudio } from './ui';
+import { Empty, FileRow, Title, useStudio } from './ui';
 
 export function FilesView() {
   const { data, studentId, href } = useStudio();
@@ -23,19 +23,7 @@ export function FilesView() {
   );
   return (
     <>
-      <Title title="Files">
-        Your code, saved by class. Pick up where you left off.
-      </Title>
-      <div className="ws-library-intro">
-        <span className="ws-folder-icon">
-          <FolderOpen size={29} />
-        </span>
-        <div>
-          <h2>A home for everything you build.</h2>
-          <p>Upload Python files and project work from each class page.</p>
-        </div>
-        <Tag tone="sage">{files.length} files</Tag>
-      </div>
+      <Title title="Files">Upload your work from each class page.</Title>
       <div className="ws-library-toolbar">
         <label className="ws-search">
           <Search size={19} />
@@ -56,8 +44,8 @@ export function FilesView() {
         </select>
       </div>
       {!lessons.length ? (
-        <Empty title="Your first folder is on its way">
-          When a class is scheduled, you can save your work to that lesson.
+        <Empty title="No classes yet">
+          Your files will show here, grouped by class.
         </Empty>
       ) : (
         lessons
@@ -77,7 +65,7 @@ export function FilesView() {
                   </div>
                 </div>
                 <Link className="ws-text-link" href={href(`calendar/${l.id}`)}>
-                  Open class / upload <ArrowUpRight size={16} />
+                  Open class <ArrowUpRight size={16} />
                 </Link>
               </div>
               {files
@@ -104,9 +92,7 @@ export function FilesView() {
 export function PractiseView() {
   return (
     <>
-      <Title title="Practise">
-        A little practice. A little more confidence.
-      </Title>
+      <Title title="Practise" />
       <section className="ws-practise">
         <Image
           unoptimized
@@ -115,12 +101,8 @@ export function PractiseView() {
           height="150"
           alt=""
         />
-        <Tag tone="sage">Coming later</Tag>
-        <h2>More room to experiment.</h2>
-        <p>
-          Offline exercises and quizzes will live here. For now, keep exploring
-          the worksheets your teacher has shared with you.
-        </p>
+        <h2>Coming soon</h2>
+        <p>Practice exercises and quizzes will be here.</p>
         <PractiseLink />
       </section>
     </>
@@ -130,7 +112,7 @@ function PractiseLink() {
   const { href } = useStudio();
   return (
     <Link className="ws-button" href={href('worksheets')}>
-      Explore worksheets <ArrowUpRight size={18} />
+      Go to worksheets <ArrowUpRight size={18} />
     </Link>
   );
 }

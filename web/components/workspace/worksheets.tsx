@@ -194,28 +194,7 @@ export function WorksheetLibrary({ assignTo }: { assignTo?: string }) {
               </Modal>
             )
           }
-        >
-          {teacher
-            ? 'One library for every lesson. Upload, organise, and share.'
-            : 'Find your next project. Every worksheet is a place to start.'}
-        </Title>
-      )}
-      {!assignTo && (
-        <div className="ws-library-intro">
-          <span className="ws-folder-icon">
-            <FileText size={27} />
-          </span>
-          <div>
-            <h2>Your worksheet library</h2>
-            <p>
-              {visible.length} worksheets ·{' '}
-              {teacher
-                ? 'Manage access for your students'
-                : 'Open worksheets are yours to explore'}
-            </p>
-          </div>
-          <Tag tone="sage">{data.courses.length} courses</Tag>
-        </div>
+        />
       )}
       <div className="ws-library-toolbar">
         <label className="ws-search">
@@ -391,9 +370,7 @@ export function WorksheetLibrary({ assignTo }: { assignTo?: string }) {
                     </Tag>
                   </div>
                   <h3>{w.title}</h3>
-                  <p>
-                    {w.description || 'A little code. Something new to build.'}
-                  </p>
+                  <p>{w.description}</p>
                   <div className="ws-tags">
                     {w.tags.map((t) => (
                       <button key={t} onClick={() => setTag(t)}>
@@ -407,7 +384,7 @@ export function WorksheetLibrary({ assignTo }: { assignTo?: string }) {
                         ? fileSize(asset.size_bytes)
                         : canOpen
                           ? 'File pending'
-                          : 'Unlock with your teacher'}
+                          : 'Ask your teacher to unlock'}
                     </small>
                     {canOpen && asset ? (
                       <div className="ws-inline-actions">
