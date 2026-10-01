@@ -1,6 +1,13 @@
 'use client';
 import Link from 'next/link';
-import { ArrowLeft, ArrowRight, ArrowUpRight, ChevronDown } from 'lucide-react';
+import {
+  ArrowLeft,
+  ArrowRight,
+  ArrowUpRight,
+  ChevronDown,
+  FileText,
+  Lock,
+} from 'lucide-react';
 import {
   classCourseNames,
   classStudents,
@@ -8,7 +15,8 @@ import {
   type WorkspaceData,
 } from '@/lib/workspace';
 import { lessonDate, lessonTime } from '@/lib/lessons';
-import { Empty, FileRow, Person, Tag, Title, useStudio } from './ui';
+import { Download, Empty, FileRow, Person, Tag, Title, useStudio } from './ui';
+import { lessonWorksheetList } from './calendar';
 
 type Classroom = WorkspaceData['classrooms'][number];
 
@@ -263,6 +271,10 @@ function PastLessons({ classId }: { classId: string }) {
         const shared = data.files.filter(
           (f) => f.lesson_id === lesson.id && f.kind === 'material',
         );
+        const worksheets = lessonWorksheetList(data, lesson.id);
+        const privateNote = data.teacherNotes.find(
+          (n) => n.lesson_id === lesson.id,
+        );
         return (
           <details className="ws-past-lesson" key={lesson.id}>
             <summary>
@@ -281,11 +293,32 @@ function PastLessons({ classId }: { classId: string }) {
             <div className="ws-past-lesson-body">
               {lesson.objective && <p>{lesson.objective}</p>}
               <h3>Shared in this lesson</h3>
-              {shared.length ? (
-                shared.map((f) => <FileRow key={f.id} file={f} />)
-              ) : (
+              {worksheets.map((w) => (
+                <div className="ws-file-row" key={w.id}>
+                  <span className="ws-file-icon">
+                    <FileText size={21} />
+                  </span>
+                  <div className="ws-grow">
+                    <strong>{w.title}</strong>
+                    <small>Worksheet</small>
+                  </div>
+                  {data.assets.some((a) => a.worksheet_id === w.id) && (
+                    <Download id={w.id} kind="worksheet" open />
+                  )}
+                </div>
+              ))}
+              {shared.map((f) => (
+                <FileRow key={f.id} file={f} />
+              ))}
+              {!worksheets.length && !shared.length && (
                 <p className="ws-muted">Nothing was shared.</p>
               )}
+              <h3>
+                Private notes <Lock size={12} />
+              </h3>
+              <p className="preserve-lines">
+                {privateNote?.body || 'No private notes.'}
+              </p>
               <h3>Students</h3>
               {students.map((s) => {
                 const feedback = data.feedback.find(

@@ -8,6 +8,8 @@ import {
   ChevronLeft,
   ChevronRight,
   GripVertical,
+  FileText,
+  Lock,
   Plus,
   Video,
   Upload,
@@ -25,6 +27,7 @@ import { lessonDate, lessonTime } from '@/lib/lessons';
 import { LESSON_FILE_ACCEPT } from '@/lib/lesson-files';
 import {
   Action,
+  Download,
   Empty,
   Field,
   FileRow,
@@ -115,7 +118,19 @@ function LessonEditor({
           </select>
         </Field>
       ) : (
-        <input type="hidden" name="status" value="scheduled" />
+        <>
+          <input type="hidden" name="status" value="scheduled" />
+          <Field label="Repeat">
+            <select name="repeat_weeks" defaultValue="1">
+              <option value="1">Does not repeat</option>
+              {[2, 4, 6, 8, 10, 12, 16, 20, 26].map((weeks) => (
+                <option key={weeks} value={weeks}>
+                  Every week, {weeks} times
+                </option>
+              ))}
+            </select>
+          </Field>
+        </>
       )}
     </SaveForm>
   );
@@ -637,6 +652,11 @@ export function LessonView({ id }: { id: string }) {
           )}
         </section>
       </div>
+      <SharedWorksheets
+        lessonId={id}
+        editable={teacher && lesson.status !== 'cancelled'}
+      />
+      {teacher && <PrivateNote lessonId={id} />}
       {teacher ? (
         <ClassNotes lessonId={id} students={students} />
       ) : (
@@ -955,6 +975,123 @@ function ClassNotes({
           </div>
         );
       })}
+    </section>
+  );
+}
+
+// Library worksheets shared with this lesson. Everyone on the lesson can open them.
+function SharedWorksheets({
+  lessonId,
+  editable,
+}: {
+  lessonId: string;
+  editable: boolean;
+}) {
+  const { data } = useStudio();
+  const shared = lessonWorksheetList(data, lessonId);
+  const choices = data.worksheets
+    .filter(
+      (w) =>
+        w.visibility !== 'restricted' && !shared.some((s) => s.id === w.id),
+    )
+    .sort((a, b) => a.title.localeCompare(b.title));
+  return (
+    <section className="ws-panel ws-spaced">
+      <div className="ws-section-heading">
+        <h2>Worksheets</h2>
+        <Tag>{shared.length}</Tag>
+      </div>
+      {shared.length ? (
+        shared.map((w) => (
+          <div className="ws-file-row" key={w.id}>
+            <span className="ws-file-icon">
+              <FileText size={21} />
+            </span>
+            <div className="ws-grow">
+              <strong>{w.title}</strong>
+              {w.description && <small>{w.description}</small>}
+            </div>
+            {data.assets.some((a) => a.worksheet_id === w.id) && (
+              <>
+                <Download id={w.id} kind="worksheet" open />
+                <Download id={w.id} kind="worksheet" />
+              </>
+            )}
+            {editable && (
+              <Action
+                action="lesson_worksheet_remove"
+                values={{ lesson_id: lessonId, worksheet_id: w.id }}
+                confirm={`Stop sharing ${w.title} with this lesson?`}
+              >
+                <X size={17} />
+                <span className="sr-only">Stop sharing {w.title}</span>
+              </Action>
+            )}
+          </div>
+        ))
+      ) : (
+        <p className="ws-muted">No worksheets shared yet.</p>
+      )}
+      {editable && choices.length > 0 && (
+        <SaveForm
+          action="lesson_worksheet_add"
+          values={{ lesson_id: lessonId }}
+          label="Share worksheet"
+        >
+          <Field label="Share a worksheet from the library">
+            <select name="worksheet_id" required defaultValue="">
+              <option value="" disabled>
+                Choose a worksheet
+              </option>
+              {choices.map((w) => (
+                <option key={w.id} value={w.id}>
+                  {w.title}
+                </option>
+              ))}
+            </select>
+          </Field>
+        </SaveForm>
+      )}
+    </section>
+  );
+}
+export function lessonWorksheetList(data: WorkspaceData, lessonId: string) {
+  return data.lessonWorksheets
+    .filter((lw) => lw.lesson_id === lessonId)
+    .map((lw) => data.worksheets.find((w) => w.id === lw.worksheet_id))
+    .filter((w): w is WorkspaceData['worksheets'][number] => Boolean(w));
+}
+
+// The teacher's own notepad for a lesson. Students and parents never receive it.
+function PrivateNote({ lessonId }: { lessonId: string }) {
+  const { data } = useStudio();
+  const note = data.teacherNotes.find((n) => n.lesson_id === lessonId);
+  return (
+    <section className="ws-panel ws-spaced ws-private-note">
+      <div className="ws-section-heading">
+        <h2>Private notes</h2>
+        <Tag>
+          <Lock size={13} /> Teachers only
+        </Tag>
+      </div>
+      <SaveForm
+        action="teacher_note_save"
+        values={{ lesson_id: lessonId }}
+        label="Save note"
+      >
+        <Field label="Your notes for this lesson">
+          <textarea
+            name="body"
+            rows={4}
+            maxLength={5000}
+            defaultValue={note?.body}
+            placeholder="Reminders for yourself. Students and parents can’t see this."
+          />
+        </Field>
+      </SaveForm>
+      {note && (
+        <p className="ws-muted">Last saved {lessonDate(note.updated_at)}</p>
+      )}
     </section>
   );
 }

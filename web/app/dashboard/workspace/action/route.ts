@@ -1,5 +1,11 @@
 import { formText, passwordError, safeOrigin } from '@/lib/accounts';
-import { isId, lessonTimes, scheduledLessonTimes } from '@/lib/lessons';
+import {
+  isId,
+  lessonTimes,
+  MAX_REPEAT_WEEKS,
+  scheduledLessonTimes,
+  weeklyLessonTimes,
+} from '@/lib/lessons';
 import { cleanTags } from '@/lib/workspace';
 import { validateLessonFile, MAX_LESSON_FILE_BYTES } from '@/lib/lesson-files';
 import { supabaseServer } from '@/lib/supabase/server';
@@ -137,18 +143,26 @@ export async function POST(request: Request) {
         if (values.status !== 'scheduled')
           throw new Error('New classes start as scheduled.');
         scheduledLessonTimes(text('starts_at'), text('ends_at'));
+        const weeks = Number(text('repeat_weeks') || '1');
+        if (!Number.isInteger(weeks) || weeks < 1 || weeks > MAX_REPEAT_WEEKS)
+          throw new Error('Choose how many weeks to repeat.');
+        const classroomId = id('classroom_id');
+        // One insert, so a clash in any week schedules none of them.
         const saved = await checked(
           client
             .from('lessons')
-            .insert({
-              ...values,
-              classroom_id: id('classroom_id'),
-              created_by: user.id,
-            })
-            .select('id')
-            .single(),
+            .insert(
+              weeklyLessonTimes(values, weeks).map((times) => ({
+                ...values,
+                ...times,
+                classroom_id: classroomId,
+                created_by: user.id,
+              })),
+            )
+            .select('id,starts_at')
+            .order('starts_at'),
         );
-        resultId = saved.id;
+        resultId = saved[0]?.id;
       }
     } else if (action === 'lesson_delete') {
       // Do not orphan private objects. Lessons with uploaded work must be retained/cancelled.
@@ -651,6 +665,43 @@ export async function POST(request: Request) {
           .select('id')
           .single(),
       );
+    } else if (action === 'lesson_worksheet_add') {
+      await checked(
+        client
+          .from('lesson_worksheets')
+          .insert({ lesson_id: id('lesson_id'), worksheet_id: id('worksheet_id') })
+          .select('lesson_id')
+          .single(),
+      );
+    } else if (action === 'lesson_worksheet_remove') {
+      await checked(
+        client
+          .from('lesson_worksheets')
+          .delete()
+          .eq('lesson_id', id('lesson_id'))
+          .eq('worksheet_id', id('worksheet_id'))
+          .select('lesson_id')
+          .single(),
+      );
+    } else if (action === 'teacher_note_save') {
+      const lessonId = id('lesson_id');
+      const body = text('body');
+      // An empty note removes it.
+      if (body)
+        await checked(
+          client
+            .from('lesson_teacher_notes')
+            .upsert({ lesson_id: lessonId, body })
+            .select('lesson_id')
+            .single(),
+        );
+      else
+        await checked(
+          client
+            .from('lesson_teacher_notes')
+            .delete()
+            .eq('lesson_id', lessonId),
+        );
     } else throw new Error('Unknown action.');
     return Response.json(
       { ok: true, id: resultId },

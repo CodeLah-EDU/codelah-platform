@@ -276,6 +276,17 @@ export function workspacePreview(
       worksheet_id,
       student_id: 'maya',
     })),
+    lessonWorksheets: [{ lesson_id: 'lesson-3', worksheet_id: 'worksheet-3' }],
+    teacherNotes:
+      role === 'teacher'
+        ? [
+            {
+              lesson_id: 'lesson-3',
+              body: 'Maya is ready for loops next week. Ryan still mixes up = and ==.',
+              updated_at: new Date(day - 7 * 86400000).toISOString(),
+            },
+          ]
+        : [],
     courses,
     levels,
     objectives,

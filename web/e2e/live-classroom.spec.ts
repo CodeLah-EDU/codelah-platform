@@ -1,31 +1,9 @@
-import {
-  test,
-  expect,
-  type BrowserContext,
-  type FrameLocator,
-  type Page,
-} from '@playwright/test';
-import { createServerClient } from '@supabase/ssr';
-import { readFileSync } from 'node:fs';
-import { randomUUID } from 'node:crypto';
+import { test, expect, type FrameLocator, type Page } from '@playwright/test';
+import { env, origin, qaAccounts, type Fixture } from './qa';
 
 // Multi-person Daily classroom check against the shared Supabase project and the real
 // Daily account. An authorized admin session creates throwaway QA accounts and a class,
 // and the test suspends/deletes them afterwards.
-const env: Record<string, string | undefined> = {
-  ...Object.fromEntries(
-    readFileSync('.env.local', 'utf8')
-      .split('\n')
-      .filter((s) => s.includes('=') && !s.trimStart().startsWith('#'))
-      .map((s) => [
-        s.slice(0, s.indexOf('=')).trim(),
-        s.slice(s.indexOf('=') + 1).trim(),
-      ]),
-  ),
-  ...process.env,
-};
-const origin = env.TEST_BASE_URL ?? 'http://localhost:3001';
-
 test.use({
   storageState: process.env.CODELAH_ADMIN_STATE,
   trace: 'off',
@@ -57,34 +35,6 @@ async function daily(path: string, init: RequestInit = {}) {
     status: response.status,
     body: (await response.json().catch(() => null)) as DailyBody | null,
   };
-}
-
-async function clientFor(ctx: BrowserContext) {
-  const jar: { name: string; value: string }[] = await ctx.cookies(origin);
-  return createServerClient(
-    env.NEXT_PUBLIC_SUPABASE_URL!,
-    env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-    {
-      cookies: {
-        getAll: () => jar,
-        setAll: async (values) => {
-          for (const c of values) {
-            const item = jar.find((v) => v.name === c.name);
-            if (item) item.value = c.value;
-            else jar.push({ name: c.name, value: c.value });
-          }
-          await ctx.addCookies(
-            values.map((c) => ({
-              name: c.name,
-              value: c.value,
-              url: origin,
-              sameSite: 'Lax' as const,
-            })),
-          );
-        },
-      },
-    },
-  );
 }
 
 async function joinClassroom(page: Page, lessonId: string) {
@@ -142,73 +92,19 @@ test('five people share one Daily classroom with the right permissions', async (
   await expect(
     page.getByRole('heading', { name: 'Overview', exact: true }),
   ).toBeVisible();
-  const admin = await clientFor(context);
-  expect((await admin.auth.getUser()).error).toBeNull();
-  const suffix = randomUUID().slice(0, 8),
-    password = `QA-${randomUUID()}!`,
-    className = `QA Video ${suffix}`;
-  const fixtures: { id: string; username: string; name: string }[] = [];
-  const contexts: BrowserContext[] = [];
-  let classId: string | undefined;
-  let roomName: string | undefined;
-
-  async function fixture(
-    role: 'student' | 'parent' | 'teacher',
-    label: string,
-  ) {
-    const username = `qa_${label}_${suffix}`,
-      name = `QA ${label} ${suffix}`;
-    const result = await admin.functions.invoke('student-accounts', {
-      body: {
-        action: 'create_student',
-        display_name: name,
-        username,
-        password,
-      },
-    });
-    expect(result.error, `create ${label}`).toBeNull();
-    const f = { id: result.data.student_id as string, username, name };
-    fixtures.push(f);
-    if (role !== 'student') {
-      expect(
-        (await admin.from('accounts').delete().eq('id', f.id)).error,
-      ).toBeNull();
-      expect(
-        (
-          await admin.from('accounts').insert({
-            id: f.id,
-            display_name: name,
-            role,
-            status: 'active',
-            contact_email: `${username}@example.invalid`,
-          })
-        ).error,
-      ).toBeNull();
-    }
-    return f;
-  }
-  async function signIn(f: { username: string }) {
-    const ctx = await browser.newContext({
+  const qa = await qaAccounts(browser, context);
+  const { admin, suffix, fixture } = qa;
+  const className = `QA Video ${suffix}`;
+  const signIn = (f: Fixture) =>
+    qa.signIn(f, {
       permissions: ['camera', 'microphone'],
       viewport: { width: 1000, height: 760 },
     });
-    ctx.setDefaultTimeout(30000);
-    contexts.push(ctx);
-    const client = await clientFor(ctx);
-    expect(
-      (
-        await client.auth.signInWithPassword({
-          email: `${f.username}@students.codelah.invalid`,
-          password,
-        })
-      ).error,
-      `sign in ${f.username}`,
-    ).toBeNull();
-    return { ctx, client, page: await ctx.newPage() };
-  }
+  let classId: string | undefined;
+  let roomName: string | undefined;
 
   try {
-    const students: { id: string; username: string; name: string }[] = [];
+    const students: Fixture[] = [];
     for (const n of [1, 2, 3, 4])
       students.push(await fixture('student', `s${n}`));
     const teacher = await fixture('teacher', 'teacher'),
@@ -413,7 +309,6 @@ test('five people share one Daily classroom with the right permissions', async (
   } finally {
     // Cleanup gets its own time budget even after a failed assertion.
     test.setTimeout(300000);
-    for (const ctx of contexts) await ctx.close().catch(() => undefined);
     const errors: string[] = [];
     if (roomName) {
       const removed = await daily(`/rooms/${roomName}`, { method: 'DELETE' });
@@ -428,20 +323,7 @@ test('five people share one Daily classroom with the right permissions', async (
         .eq('name', className);
       if (result.error) errors.push(result.error.message);
     }
-    for (const f of fixtures) {
-      await admin
-        .from('parent_student_links')
-        .update({ active: false })
-        .eq('parent_id', f.id);
-      const result = await admin
-        .from('accounts')
-        .update({ status: 'suspended' })
-        .eq('id', f.id);
-      if (result.error) errors.push(result.error.message);
-    }
-    const session = await admin.auth.getUser();
-    if (!session.error && session.data.user)
-      await context.storageState({ path: process.env.CODELAH_ADMIN_STATE! });
+    errors.push(...(await qa.cleanup()));
     expect(errors, 'QA cleanup').toEqual([]);
   }
 });

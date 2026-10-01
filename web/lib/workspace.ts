@@ -70,6 +70,8 @@ export type WorkspaceData = {
   worksheets: Worksheet[];
   assets: { worksheet_id: string; file_name: string; size_bytes: number }[];
   assignments: { worksheet_id: string; student_id: string }[];
+  lessonWorksheets: { lesson_id: string; worksheet_id: string }[];
+  teacherNotes: { lesson_id: string; body: string; updated_at: string }[];
   courses: { id: string; name: string; description: string }[];
   levels: { id: string; course_id: string; name: string; position: number }[];
   objectives: {
@@ -164,12 +166,19 @@ export function worksheetAvailable(
   if (data.account.role === 'teacher' || data.account.role === 'admin')
     return true;
   if (worksheet.visibility === 'restricted') return false;
+  const student = studentId || data.account.id;
   return (
     worksheet.visibility === 'unlocked' ||
     data.assignments.some(
-      (a) =>
-        a.worksheet_id === worksheet.id &&
-        a.student_id === (studentId || data.account.id),
+      (a) => a.worksheet_id === worksheet.id && a.student_id === student,
+    ) ||
+    // Shared with a lesson this student is on.
+    data.lessonWorksheets.some(
+      (lw) =>
+        lw.worksheet_id === worksheet.id &&
+        data.roster.some(
+          (r) => r.lesson_id === lw.lesson_id && r.student_id === student,
+        ),
     )
   );
 }

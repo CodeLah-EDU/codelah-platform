@@ -44,6 +44,19 @@ export function scheduledLessonTimes(
     throw new Error('Choose a future lesson start time.');
   return times;
 }
+export const MAX_REPEAT_WEEKS = 26;
+// The same lesson time on each of the next `weeks` weeks, starting with the first.
+// Singapore has no daylight saving, so a week is always exactly seven days.
+export function weeklyLessonTimes(
+  first: { starts_at: string; ends_at: string },
+  weeks: number,
+) {
+  const week = 7 * 24 * 3600000;
+  return Array.from({ length: weeks }, (_, i) => ({
+    starts_at: new Date(new Date(first.starts_at).valueOf() + i * week).toISOString(),
+    ends_at: new Date(new Date(first.ends_at).valueOf() + i * week).toISOString(),
+  }));
+}
 export function lessonDate(value: string) {
   return new Intl.DateTimeFormat('en-SG', {
     timeZone: 'Asia/Singapore',

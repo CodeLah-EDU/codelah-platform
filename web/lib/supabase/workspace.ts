@@ -62,6 +62,14 @@ export async function loadWorkspace(
     assignments: client
       .from('worksheet_assignments')
       .select('worksheet_id,student_id'),
+    lessonWorksheets: client
+      .from('lesson_worksheets')
+      .select('lesson_id,worksheet_id')
+      .order('created_at'),
+    // Row-level security returns these only to the lesson's teacher and administrators.
+    teacherNotes: client
+      .from('lesson_teacher_notes')
+      .select('lesson_id,body,updated_at'),
     courses: client.from('courses').select('*').order('name'),
     levels: client.from('course_levels').select('*').order('position'),
     objectives: client.from('course_objectives').select('*').order('position'),
