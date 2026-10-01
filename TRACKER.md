@@ -32,7 +32,7 @@ updated: 2026-10-01
 - [ ] Hosted fee/expense CRUD and audit check (no automated test saves real fees or expenses yet)  ^t-0013
 
 ## Next
-- [ ] Merge feat/learning-workspace-overhaul into dev  ^t-0004
+- [x] Merge feat/learning-workspace-overhaul into dev  done:2026-10-01  ^t-0004
 - [ ] Teacher creates real courses/levels/objectives and uploads worksheets  ^t-0005
 - [ ] Hosted teacher/student/parent cycle check (worksheets, attendance, .py upload, revocation)  ^t-0006
   - [ ] Rewrite the lesson-cycle half of e2e/teaching-flow.spec.ts for the workspace pages; it still drives the old /dashboard/lessons/[id] page, where publishing feedback did not reach the parent in the 2026-10-01 run. Decide whether to retire that old page.
@@ -48,6 +48,7 @@ updated: 2026-10-01
 
 ## Log
 ### 2026-10-01
+- t-0004: dev fast-forwarded to feat/learning-workspace-overhaul at 9a0a266 (dev had no commits of its own, so no conflicts and no merge commit). No GitHub pull request was opened because the gh CLI is not installed here.
 - t-0012: parents can reset their child's password again from the Student page (Reset password button). Founder update to D010: parents and admins only; teachers are now refused by the student-accounts function. Every reset is recorded in the new student_password_changes table (migration 202610010001, applied) and listed under "Password changes" on the admin's student record. Function redeployed; unauthenticated calls still get 401.
 - t-0014 teacher changes: removed the three count boxes from the teacher home; the Classroom button now opens the video page directly, which joins straight away (the teacher's first visit creates the Daily room, so "Prepare live classroom" is no longer needed; students who arrive first are told to wait). The class page roster is one line per student with attendance in a pop-up, and class notes are one compact list with writing in a pop-up. The call has Full screen and Hide/Show chat buttons; the chat panel lets teachers (room owners) post text that students can read and copy, with a catch-up for late joiners. Messages are not saved after the call.
 - Follow-up: everyone in the call can now chat, not just the teacher. Names come from Daily's participant record (set by the server-issued token), so nobody can post as someone else; teacher messages are highlighted and marked "(teacher)". Removed the "Latest class notes" panel from the teacher home; "Coming up" now uses the full width. live-classroom.spec.ts passes again (a student's message reaches everyone under their own name); workspace tests and 65 unit tests pass.
