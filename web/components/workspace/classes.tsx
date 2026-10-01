@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { ArrowLeft, ArrowRight, ArrowUpRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ArrowUpRight, ChevronDown } from 'lucide-react';
 import {
   classCourseNames,
   classStudents,
@@ -8,7 +8,7 @@ import {
   type WorkspaceData,
 } from '@/lib/workspace';
 import { lessonDate, lessonTime } from '@/lib/lessons';
-import { Empty, Person, Tag, Title, useStudio } from './ui';
+import { Empty, FileRow, Person, Tag, Title, useStudio } from './ui';
 
 type Classroom = WorkspaceData['classrooms'][number];
 
@@ -222,6 +222,152 @@ export function ClassView({ id }: { id: string }) {
           )}
         </section>
       </div>
+      <PastLessons classId={id} />
     </>
+  );
+}
+
+// Lessons that have already happened, newest first. Each opens to show what was shared,
+// the teacher's comment for each student, and the students' own notes.
+function PastLessons({ classId }: { classId: string }) {
+  const { data, href, now } = useStudio();
+  const lessons = data.lessons
+    .filter(
+      (l) =>
+        l.classroom_id === classId &&
+        l.status !== 'cancelled' &&
+        new Date(l.starts_at).valueOf() <= now,
+    )
+    .sort((a, b) => b.starts_at.localeCompare(a.starts_at));
+  return (
+    <section className="ws-panel ws-spaced ws-past-lessons">
+      <div className="ws-section-heading">
+        <h2>Past lessons</h2>
+        <Tag>{lessons.length}</Tag>
+      </div>
+      {!lessons.length && (
+        <p className="ws-muted">Lessons will show here after they happen.</p>
+      )}
+      {lessons.map((lesson) => {
+        const roster = data.roster.filter((r) => r.lesson_id === lesson.id);
+        const students = data.people
+          .filter((p) => roster.some((r) => r.student_id === p.id))
+          .sort((a, b) => a.display_name.localeCompare(b.display_name));
+        const attendance = (studentId: string) =>
+          data.attendance.find(
+            (a) => a.lesson_id === lesson.id && a.student_id === studentId,
+          )?.status;
+        const present = students.filter((s) =>
+          ['present', 'late'].includes(attendance(s.id) ?? ''),
+        ).length;
+        const shared = data.files.filter(
+          (f) => f.lesson_id === lesson.id && f.kind === 'material',
+        );
+        return (
+          <details className="ws-past-lesson" key={lesson.id}>
+            <summary>
+              <span className="ws-grow">
+                <strong>{lesson.title}</strong>
+                <small>
+                  {lessonDate(lesson.starts_at)} ·{' '}
+                  {lessonTime(lesson.starts_at, lesson.ends_at)}
+                </small>
+              </span>
+              <Tag>
+                {present}/{students.length} attended
+              </Tag>
+              <ChevronDown className="ws-past-chevron" size={18} />
+            </summary>
+            <div className="ws-past-lesson-body">
+              {lesson.objective && <p>{lesson.objective}</p>}
+              <h3>Shared in this lesson</h3>
+              {shared.length ? (
+                shared.map((f) => <FileRow key={f.id} file={f} />)
+              ) : (
+                <p className="ws-muted">Nothing was shared.</p>
+              )}
+              <h3>Students</h3>
+              {students.map((s) => {
+                const feedback = data.feedback.find(
+                  (f) => f.lesson_id === lesson.id && f.student_id === s.id,
+                );
+                const report = data.reports.find(
+                  (r) => r.lesson_id === lesson.id && r.student_id === s.id,
+                );
+                const teacherNote = feedback?.note ?? report?.note;
+                const notes = data.comments.filter(
+                  (c) => c.lesson_id === lesson.id && c.student_id === s.id,
+                );
+                const files = data.files.filter(
+                  (f) =>
+                    f.lesson_id === lesson.id &&
+                    f.kind === 'submission' &&
+                    f.student_id === s.id,
+                );
+                return (
+                  <div className="ws-past-student" key={s.id}>
+                    <div className="ws-roster-row">
+                      <Person name={s.display_name} />
+                      <Tag
+                        tone={
+                          ['present', 'late'].includes(attendance(s.id) ?? '')
+                            ? 'attended'
+                            : attendance(s.id) === 'absent'
+                              ? 'missed'
+                              : ''
+                        }
+                      >
+                        {attendance(s.id) || 'Unmarked'}
+                      </Tag>
+                    </div>
+                    <dl>
+                      <dt>
+                        Your comment
+                        {feedback && (
+                          <Tag tone={report ? 'attended' : ''}>
+                            {feedback.status === 'published'
+                              ? 'Published'
+                              : 'Draft'}
+                          </Tag>
+                        )}
+                      </dt>
+                      <dd className="preserve-lines">
+                        {teacherNote || 'No comment yet.'}
+                      </dd>
+                      <dt>Student’s notes</dt>
+                      <dd>
+                        {notes.length
+                          ? notes.map((c) => (
+                              <p className="preserve-lines" key={c.id}>
+                                {c.body}
+                              </p>
+                            ))
+                          : 'No notes yet.'}
+                      </dd>
+                      {files.length > 0 && (
+                        <>
+                          <dt>Student’s files</dt>
+                          <dd>
+                            {files.map((f) => (
+                              <FileRow key={f.id} file={f} />
+                            ))}
+                          </dd>
+                        </>
+                      )}
+                    </dl>
+                  </div>
+                );
+              })}
+              <Link
+                className="ws-text-link"
+                href={href(`calendar/${lesson.id}`)}
+              >
+                Open lesson to edit <ArrowUpRight size={16} />
+              </Link>
+            </div>
+          </details>
+        );
+      })}
+    </section>
   );
 }

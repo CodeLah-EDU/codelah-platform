@@ -65,11 +65,6 @@ export function HomeView() {
           ) : (
             <>
               <h2>No class scheduled yet</h2>
-              <p>
-                {teacher
-                  ? 'Schedule a class and bring your students together.'
-                  : 'Your next class will show here.'}
-              </p>
               <Link className="ws-button lime" href={href('calendar')}>
                 Open calendar <ArrowUpRight size={19} />
               </Link>

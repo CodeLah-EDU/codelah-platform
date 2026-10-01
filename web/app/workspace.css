@@ -2209,3 +2209,82 @@
   font-size: 13px;
   color: #596451;
 }
+.learning-workspace details.ws-past-lesson {
+  margin: 0;
+  border-top: 1px solid var(--ws-border);
+}
+.ws-past-lesson summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 0;
+  color: inherit;
+}
+.ws-past-lesson summary strong {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+}
+.ws-past-lesson summary small {
+  display: block;
+  color: #596451;
+  font-size: 13px;
+  font-weight: 400;
+  margin-top: 2px;
+}
+.ws-past-lesson-body {
+  padding: 0 0 20px 22px;
+  display: grid;
+  gap: 10px;
+  font-size: 14px;
+}
+.ws-past-lesson-body h3 {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #596451;
+  margin-top: 8px;
+}
+.ws-past-student {
+  border: 1px solid var(--ws-border);
+  border-radius: 10px;
+  padding: 4px 14px 12px;
+}
+.ws-past-student .ws-roster-row {
+  grid-template-columns: minmax(0, 1fr) auto;
+  border-top: 0;
+}
+.ws-past-student dl {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+}
+.ws-past-student dt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 13px;
+  margin-top: 6px;
+}
+.ws-past-student dd {
+  margin: 0;
+  color: #34402f;
+}
+.ws-past-student dd p + p {
+  margin-top: 6px;
+}
+.ws-past-lesson summary::-webkit-details-marker {
+  display: none;
+}
+.ws-past-lesson summary {
+  list-style: none;
+}
+.ws-past-chevron {
+  color: #52734b;
+  transition: transform 0.15s;
+}
+.ws-past-lesson[open] .ws-past-chevron {
+  transform: rotate(180deg);
+}

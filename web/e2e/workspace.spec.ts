@@ -193,6 +193,7 @@ test('desktop and mobile pages have no overflow or runtime errors', async ({
     '/preview/teacher/home',
     '/preview/teacher/classes',
     '/preview/teacher/classes/class-python',
+    '/preview/teacher/classes/class-builders',
     '/preview/teacher/calendar',
     '/preview/teacher/students',
     '/preview/teacher/students/maya/overview',
