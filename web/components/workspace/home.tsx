@@ -68,10 +68,7 @@ export function HomeView() {
                 <span>· {lessonTime(next.starts_at, next.ends_at)}</span>
               </div>
               <h2>{next.title}</h2>
-              <p>
-                {next.objective ||
-                  'Get ready to explore, experiment, and build something new.'}
-              </p>
+              {next.objective && <p>{next.objective}</p>}
               <div className="ws-next-footer">
                 <Tag tone="upcoming">Upcoming</Tag>
                 <Link

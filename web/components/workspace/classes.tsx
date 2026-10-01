@@ -69,11 +69,7 @@ export function ClassesSummary() {
               <div className="ws-grow">
                 <strong>{c.name}</strong>
                 <Courses names={classCourseNames(data, c.id)} />
-                <small>
-                  {students.length
-                    ? students.map((s) => s.display_name).join(', ')
-                    : 'No students yet'}
-                </small>
+                <small>{plural(students.length, 'student')}</small>
               </div>
               <ArrowUpRight size={18} />
             </Link>
