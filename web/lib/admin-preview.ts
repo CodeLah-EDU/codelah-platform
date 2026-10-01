@@ -6,6 +6,8 @@ export function adminPreview(now: number): AdminData {
   const workspace = workspacePreview('teacher', now);
   const today = singaporeDay(new Date(now).toISOString());
   const month = today.slice(0, 7);
+  // Unpaid examples fall due the day before, so the overdue examples exist on every date.
+  const yesterday = singaporeDay(new Date(now - 86400000).toISOString());
   const account = {
     id: 'admin-preview',
     display_name: 'Sam Lee',
@@ -21,7 +23,7 @@ export function adminPreview(now: number): AdminData {
       student_id: student.id,
       description: `${m} · Python tuition`,
       amount_cents: 24000 + i * 4000,
-      due_on: `${m}-01`,
+      due_on: index === 5 && i > 1 ? yesterday : `${m}-01`,
       status: index === 5 && i > 1 ? (i === 4 ? 'waived' : 'pending') : 'paid',
       paid_on:
         index === 5 && i > 1

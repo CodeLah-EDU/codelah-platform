@@ -19,6 +19,9 @@ updated: 2026-10-01
   - [ ] Install invite email template (blocked: needs custom SMTP)
 - [ ] Verify one adult invitation end to end and fee/expense/roster flows on hosted  prio:high  ^t-0003
 
+- [ ] Decide: restore parent/teacher student password reset in the workspace (decision D010); the overhaul's /dashboard redirect hid the only non-admin UI for it  prio:high  ^t-0012
+- [ ] Hosted fee/expense CRUD and audit check (no automated test saves real fees or expenses yet)  ^t-0013
+
 ## Next
 - [ ] Merge feat/learning-workspace-overhaul into dev  ^t-0004
 - [ ] Teacher creates real courses/levels/objectives and uploads worksheets  ^t-0005
@@ -35,6 +38,7 @@ updated: 2026-10-01
 
 ## Log
 ### 2026-10-01
+- Ran the full Playwright suite against the hosted project: 23/28 passed at first. Fixed three date-dependent failures (preview fees were due on the 1st, so none were overdue on 1 Oct; the calendar drag test needed a taller window when tomorrow's class is in the top row) and admin-flow (new contexts inherited the admin session and /login now redirects signed-in users). admin-flow now passes against hosted: class, enrolment, teacher, parent link, student sign-in and revocation. teaching-flow still fails: it resets a student password from the parent's old /dashboard page, which the workspace redirect made unreachable (t-0012).
 - Removed the Daily API key blocker: DAILY_API_KEY is set in web/.env.local and was verified against Daily on 2026-09-28 (364f025). The first real multi-user classroom trial is still pending.
 - Decided to use the single hosted Supabase project for development; no separate dev database during the dev phase.
 - Linked the Supabase CLI to project tcequgfvwzfbxawclyum. The six earlier migrations had been applied from the dashboard under timestamp IDs, so the history was repaired to the repo file IDs (202609160001 through 202609240002); no schema changed during the repair.

@@ -72,6 +72,8 @@ test('worksheet search, access filters and layout controls work; locked files ha
 test('teacher calendar supports student links, drag targets, and accessible roster selection', async ({
   page,
 }) => {
+  // Tall enough that any calendar row and the student list are on screen together for dragging.
+  await page.setViewportSize({ width: 1280, height: 2000 });
   await page.goto('/preview/teacher/calendar');
   await expect(
     page.getByRole('heading', { name: 'Assign students' }),

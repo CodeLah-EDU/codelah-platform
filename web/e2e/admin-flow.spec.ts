@@ -87,7 +87,11 @@ test('administrator creates a class, links a parent, assigns a teacher, and veri
     username: string;
     role: string;
   }[] = [];
-  const studentContext = await browser.newContext();
+  // Start signed out: new contexts otherwise inherit the admin storageState, and signed-in
+  // visitors are redirected away from /login.
+  const studentContext = await browser.newContext({
+    storageState: { cookies: [], origins: [] },
+  });
   const makeFixture = async (role: 'student' | 'parent' | 'teacher') => {
     const name = `QA ${role} ${suffix}`,
       username = `qa_${role}_${suffix}`;
@@ -170,11 +174,9 @@ test('administrator creates a class, links a parent, assigns a teacher, and veri
     ).toBeVisible();
     // Parent contact information starts empty, then reflects the real link.
     await page.goto(`/admin/accounts/${student.id}`);
-    const studentCard = page
-      .locator('.ops-panel')
-      .filter({
-        has: page.getByRole('heading', { name: 'Linked parents', exact: true }),
-      });
+    const studentCard = page.locator('.ops-panel').filter({
+      has: page.getByRole('heading', { name: 'Linked parents', exact: true }),
+    });
     await expect(
       studentCard.getByText('No family links yet', { exact: true }),
     ).toBeVisible();
